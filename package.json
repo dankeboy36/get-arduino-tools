@@ -15,7 +15,7 @@
   },
   "main": "src/index.js",
   "bin": {
-    "gat": "bin/cli.cjs"
+    "gat": "bin/cli.js"
   },
   "files": [
     "src",
