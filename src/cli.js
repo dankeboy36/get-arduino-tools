@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import { enable } from 'debug'
 
 import { getTool, tools } from './get.js'
 import { createLog } from './log.js'
@@ -20,9 +21,13 @@ program
   .option('-p, --platform <platform>', 'Platform', process.platform)
   .option('-a, --arch <arch>', 'Architecture', process.arch)
   .option('-f, --force', 'Force download to overwrite existing files', false)
+  .option('--verbose', 'Enables the verbose output', false)
   .description('Get an Arduino tool')
   .action(async (tool, version, options) => {
     log('Getting tool', tool, version, JSON.stringify(options))
+    if (options.verbose === true) {
+      enable('*')
+    }
     const { toolPath } = await getTool({
       tool,
       version,
@@ -32,5 +37,10 @@ program
     console.log(`Tool downloaded to ${toolPath}`)
   })
 
-log('parse', process.argv)
-program.parse(process.argv)
+/**
+ * @param {readonly string[]} args
+ */
+export function parse(args) {
+  log('parse', args)
+  program.parse(args)
+}

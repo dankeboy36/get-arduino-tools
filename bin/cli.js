@@ -1,3 +1,5 @@
 #!/usr/bin/env node
 
-import '../dist/cli.cjs'
+import { parse } from '../dist/cli.cjs'
+
+parse(process.argv)
