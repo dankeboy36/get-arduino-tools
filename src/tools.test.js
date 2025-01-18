@@ -2,7 +2,7 @@ import { getToolName } from './tools.js'
 
 describe('getToolName', () => {
   it('should return correct tool name for supported tools', () => {
-    const params = /** @type{const} */ ({
+    const params = /** @type {const} */ ({
       tool: 'arduino-cli',
       version: '0.18.3',
       platform: 'win32',
@@ -16,7 +16,7 @@ describe('getToolName', () => {
   })
 
   it('should throw an error for unsupported tools', () => {
-    const params = /** @type{const} */ ({
+    const params = /** @type {const} */ ({
       tool: 'unsupported-tool',
       version: '1.0.0',
       platform: 'win32',
@@ -28,7 +28,7 @@ describe('getToolName', () => {
   })
 
   it('should return correct tool name for macOS Intel', () => {
-    const params = /** @type{const} */ ({
+    const params = /** @type {const} */ ({
       tool: 'arduino-cli',
       version: '0.18.3',
       platform: 'darwin',
@@ -42,7 +42,7 @@ describe('getToolName', () => {
   })
 
   it('should return correct tool name for macOS ARM64', () => {
-    const params = /** @type{const} */ ({
+    const params = /** @type {const} */ ({
       tool: 'arduino-cli',
       version: '0.18.3',
       platform: 'darwin',
@@ -56,7 +56,7 @@ describe('getToolName', () => {
   })
 
   it('should return correct tool name for Linux x64', () => {
-    const params = /** @type{const} */ ({
+    const params = /** @type {const} */ ({
       tool: 'arduino-cli',
       version: '0.18.3',
       platform: 'linux',
@@ -70,7 +70,7 @@ describe('getToolName', () => {
   })
 
   it('should return correct tool name for Linux (Raspberry Pi - arm7vl)', () => {
-    const params = /** @type{const} */ ({
+    const params = /** @type {const} */ ({
       tool: 'arduino-cli',
       version: '0.18.3',
       platform: 'linux',
@@ -84,7 +84,7 @@ describe('getToolName', () => {
   })
 
   it('should return correct tool name for Linux ARM64', () => {
-    const params = /** @type{const} */ ({
+    const params = /** @type {const} */ ({
       tool: 'arduino-cli',
       version: '0.18.3',
       platform: 'linux',
@@ -98,7 +98,7 @@ describe('getToolName', () => {
   })
 
   it('should throw an error for unsupported platform', () => {
-    const params = /** @type{const} */ ({
+    const params = /** @type {const} */ ({
       tool: 'arduino-cli',
       version: '0.18.3',
       platform: 'unsupported-platform',
@@ -110,7 +110,7 @@ describe('getToolName', () => {
   })
 
   it('should throw an error for unsupported architecture', () => {
-    const params = /** @type{const} */ ({
+    const params = /** @type {const} */ ({
       tool: 'arduino-cli',
       version: '0.18.3',
       platform: 'linux',
