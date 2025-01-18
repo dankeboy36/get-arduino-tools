@@ -31,7 +31,7 @@ jobs:
       - name: Check Format
         run: npm run format && git diff --exit-code
       - name: Test
-          run: npm test
+        run: npm test
 
   release:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
