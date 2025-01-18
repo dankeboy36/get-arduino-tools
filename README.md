@@ -1,3 +1,3 @@
 # get-arduino-tool
 
-Get Arduino Tool
+Get Arduino tool
