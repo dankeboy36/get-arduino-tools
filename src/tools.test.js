@@ -1,6 +1,6 @@
-import { getToolName } from './tools.js'
+import { getToolDescription } from './tools.js'
 
-describe('getToolName', () => {
+describe('getToolDescription', () => {
   it('should return correct tool name for supported tools', () => {
     const params = /** @type {const} */ ({
       tool: 'arduino-cli',
@@ -8,11 +8,12 @@ describe('getToolName', () => {
       platform: 'win32',
       arch: 'x64',
     })
-    const result = getToolName(params)
-    expect(result).toEqual({
-      remoteFilename: 'arduino-cli_0.18.3_Windows_64bit.zip',
-      localFilename: 'arduino-cli.exe',
-    })
+    const result = getToolDescription(params)
+    expect(result).toEqual(
+      expect.objectContaining({
+        url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_0.18.3_Windows_64bit.zip',
+      })
+    )
   })
 
   it('should throw an error for unsupported tools', () => {
@@ -22,7 +23,7 @@ describe('getToolName', () => {
       platform: 'win32',
       arch: 'x64',
     })
-    expect(() => getToolName(params)).toThrow(
+    expect(() => getToolDescription(params)).toThrow(
       'Unsupported tool: unsupported-tool'
     )
   })
@@ -34,11 +35,12 @@ describe('getToolName', () => {
       platform: 'darwin',
       arch: 'x64',
     })
-    const result = getToolName(params)
-    expect(result).toEqual({
-      remoteFilename: 'arduino-cli_0.18.3_macOS_64bit.tar.gz',
-      localFilename: 'arduino-cli',
-    })
+    const result = getToolDescription(params)
+    expect(result).toEqual(
+      expect.objectContaining({
+        url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_0.18.3_macOS_64bit.tar.gz',
+      })
+    )
   })
 
   it('should return correct tool name for macOS ARM64', () => {
@@ -48,11 +50,12 @@ describe('getToolName', () => {
       platform: 'darwin',
       arch: 'arm64',
     })
-    const result = getToolName(params)
-    expect(result).toEqual({
-      remoteFilename: 'arduino-cli_0.18.3_macOS_ARM64.tar.gz',
-      localFilename: 'arduino-cli',
-    })
+    const result = getToolDescription(params)
+    expect(result).toEqual(
+      expect.objectContaining({
+        url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_0.18.3_macOS_ARM64.tar.gz',
+      })
+    )
   })
 
   it('should return correct tool name for Linux x64', () => {
@@ -62,11 +65,12 @@ describe('getToolName', () => {
       platform: 'linux',
       arch: 'x64',
     })
-    const result = getToolName(params)
-    expect(result).toEqual({
-      remoteFilename: 'arduino-cli_0.18.3_Linux_64bit.tar.gz',
-      localFilename: 'arduino-cli',
-    })
+    const result = getToolDescription(params)
+    expect(result).toEqual(
+      expect.objectContaining({
+        url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_0.18.3_Linux_64bit.tar.gz',
+      })
+    )
   })
 
   it('should return correct tool name for Linux (Raspberry Pi - arm7vl)', () => {
@@ -76,11 +80,12 @@ describe('getToolName', () => {
       platform: 'linux',
       arch: 'arm',
     })
-    const result = getToolName(params)
-    expect(result).toEqual({
-      remoteFilename: 'arduino-cli_0.18.3_Linux_ARMv7.tar.gz',
-      localFilename: 'arduino-cli',
-    })
+    const result = getToolDescription(params)
+    expect(result).toEqual(
+      expect.objectContaining({
+        url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_0.18.3_Linux_ARMv7.tar.gz',
+      })
+    )
   })
 
   it('should return correct tool name for Linux ARM64', () => {
@@ -90,11 +95,42 @@ describe('getToolName', () => {
       platform: 'linux',
       arch: 'arm64',
     })
-    const result = getToolName(params)
-    expect(result).toEqual({
-      remoteFilename: 'arduino-cli_0.18.3_Linux_ARM64.tar.gz',
-      localFilename: 'arduino-cli',
+    const result = getToolDescription(params)
+    expect(result).toEqual(
+      expect.objectContaining({
+        url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_0.18.3_Linux_ARM64.tar.gz',
+      })
+    )
+  })
+
+  it('should use tool in the URL for clangd on Windows', () => {
+    const params = /** @type {const} */ ({
+      tool: 'clangd',
+      version: '0.18.3',
+      platform: 'win32',
+      arch: 'x64',
     })
+    const result = getToolDescription(params)
+    expect(result).toEqual(
+      expect.objectContaining({
+        url: 'https://downloads.arduino.cc/tools/clangd_0.18.3_Windows_64bit.zip',
+      })
+    )
+  })
+
+  it('should use tool in the URL for clangd on non-Windows', () => {
+    const params = /** @type {const} */ ({
+      tool: 'clangd',
+      version: '0.18.3',
+      platform: 'linux',
+      arch: 'x64',
+    })
+    const result = getToolDescription(params)
+    expect(result).toEqual(
+      expect.objectContaining({
+        url: 'https://downloads.arduino.cc/tools/clangd_0.18.3_Linux_64bit.tar.bz2',
+      })
+    )
   })
 
   it('should throw an error for unsupported platform', () => {
@@ -104,7 +140,7 @@ describe('getToolName', () => {
       platform: 'unsupported-platform',
       arch: 'x64',
     })
-    expect(() => getToolName(params)).toThrow(
+    expect(() => getToolDescription(params)).toThrow(
       'Unsupported platform: unsupported-platform, arch: x64'
     )
   })
@@ -116,7 +152,7 @@ describe('getToolName', () => {
       platform: 'linux',
       arch: 'unsupported-arch',
     })
-    expect(() => getToolName(params)).toThrow(
+    expect(() => getToolDescription(params)).toThrow(
       'Unsupported platform: linux, arch: unsupported-arch'
     )
   })

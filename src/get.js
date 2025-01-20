@@ -4,7 +4,7 @@ import path from 'node:path'
 import { download } from './download.js'
 import { extract } from './extract.js'
 import { createLog } from './log.js'
-import { getToolName, tools } from './tools.js'
+import { getToolDescription, tools } from './tools.js'
 
 /**
  * @typedef {Object} GetToolParams
@@ -31,7 +31,7 @@ export async function getTool({
 }) {
   const log = createLog('getTool')
 
-  const { localFilename, remoteFilename } = getToolName({
+  const { url } = getToolDescription({
     tool,
     version,
     platform,
@@ -41,22 +41,20 @@ export async function getTool({
   /** @type {Uint8Array<ArrayBufferLike>|undefined} */
   let buffer
   try {
-    buffer = await download({
-      tool,
-      remoteFilename,
-    })
+    buffer = await download({ url })
   } catch (err) {
-    log(`Failed to download ${remoteFilename}`, err)
+    log(`Failed to download from ${url}`, err)
   }
   if (!buffer) {
-    throw new Error(`Failed to download ${remoteFilename}`)
+    throw new Error(`Failed to download from ${url}`)
   }
 
   const extractResult = await extract({ buffer })
 
   try {
-    const sourcePath = path.join(extractResult.destinationPath, localFilename)
-    const destinationPath = path.join(destinationFolderPath, localFilename)
+    const basename = `${tool}${platform === 'win32' ? '.exe' : ''}`
+    const sourcePath = path.join(extractResult.destinationPath, basename)
+    const destinationPath = path.join(destinationFolderPath, basename)
 
     await copy(sourcePath, destinationPath, force, log)
 
@@ -74,7 +72,7 @@ export async function getTool({
  * @param {ReturnType<createLog>} log
  */
 async function copy(sourcePath, destinationPath, force, log) {
-  log('Copying', sourcePath, 'to', destinationPath, 'with force:', force)
+  log('Copying', sourcePath, 'to', destinationPath, 'with force', force)
   const mode = force ? undefined : constants.COPYFILE_EXCL
   try {
     await fs.copyFile(sourcePath, destinationPath, mode)

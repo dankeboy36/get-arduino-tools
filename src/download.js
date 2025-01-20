@@ -4,18 +4,15 @@ import { createLog } from './log.js'
 
 /**
  * @typedef {Object} DownloadParams
- * @property {import('./tools.js').Tool} tool
- * @property {string} remoteFilename
+ * @property {string} url
  *
  * @param {DownloadParams} params
  * @returns {Promise<Uint8Array<ArrayBufferLike>>}
  */
-export async function download({ tool, remoteFilename }) {
+export async function download({ url }) {
   const log = createLog('download')
 
-  log('Downloading', tool, remoteFilename)
-  const url = `https://downloads.arduino.cc/${tool}/${remoteFilename}`
-  log(`Downloading ${url}`)
+  log('Downloading', url)
   try {
     const { body } = await xhr.xhr({ url })
     log(`Downloaded ${url}`)

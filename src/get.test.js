@@ -5,7 +5,7 @@ import { download } from './download.js'
 import { extract } from './extract.js'
 import { getTool } from './get.js'
 import { createLog } from './log.js'
-import { getToolName, tools } from './tools.js'
+import { getToolDescription } from './tools.js'
 
 jest.mock('@xhmikosr/decompress', () => ({
   __esModule: true,
@@ -20,7 +20,7 @@ jest.mock('./tools.js')
 
 describe('get', () => {
   const log = jest.fn()
-  const mockTool = tools[0]
+  const mockTool = 'mockTool'
   const mockVersion = '1.0.0'
   const mockDestinationFolderPath = '/mock/destination'
   const mockPlatform = 'linux'
@@ -35,9 +35,9 @@ describe('get', () => {
     jest.mocked(createLog).mockReturnValue(log)
     jest.mocked(download).mockResolvedValue(mockBuffer)
     jest.mocked(extract).mockResolvedValue(mockExtractResult)
-    jest.mocked(getToolName).mockReturnValue({
-      localFilename: 'mockTool',
-      remoteFilename: 'mockTool-1.0.0.tar.gz',
+    jest.mocked(getToolDescription).mockReturnValue({
+      tool: mockTool,
+      url: 'https://downloads.arduino.cc/mock',
     })
     jest.clearAllMocks()
   })
@@ -52,8 +52,7 @@ describe('get', () => {
     })
 
     expect(download).toHaveBeenCalledWith({
-      tool: mockTool,
-      remoteFilename: 'mockTool-1.0.0.tar.gz',
+      url: 'https://downloads.arduino.cc/mock',
     })
     expect(extract).toHaveBeenCalledWith({ buffer: mockBuffer })
     expect(fs.copyFile).toHaveBeenCalledWith(
@@ -76,7 +75,9 @@ describe('get', () => {
         version: mockVersion,
         destinationFolderPath: mockDestinationFolderPath,
       })
-    ).rejects.toThrow('Failed to download mockTool-1.0.0.tar.gz')
+    ).rejects.toThrow(
+      'Failed to download from https://downloads.arduino.cc/mock'
+    )
   })
 
   it('should overwrite the tool if force is true', async () => {
@@ -99,14 +100,15 @@ describe('get', () => {
       tool: mockTool,
       version: mockVersion,
       destinationFolderPath: mockDestinationFolderPath,
+      platform: 'win32',
     })
 
     expect(log).toHaveBeenCalledWith(
       'Copying',
-      path.join('/mock/extracted', 'mockTool'),
+      path.join('/mock/extracted', 'mockTool.exe'),
       'to',
-      path.join(mockDestinationFolderPath, 'mockTool'),
-      'with force:',
+      path.join(mockDestinationFolderPath, 'mockTool.exe'),
+      'with force',
       false
     )
     expect(log).toHaveBeenCalledWith('Copied')

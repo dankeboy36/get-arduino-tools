@@ -1,30 +1,31 @@
 import { createLog } from './log.js'
 
+const clangTools = /** @type {const} */ (['clangd', 'clangd-format'])
+
 export const tools = /** @type {const} */ ([
   'arduino-cli',
   'arduino-language-server',
   'arduino-fwuploader',
-  'clangd',
-  'clangd-format',
+  ...clangTools,
 ])
 
 /**
  * @typedef {typeof tools[number]} Tool
  *
- * @typedef {Object} GetToolNameResult
- * @property {string} remoteFilename
- * @property {string} localFilename
+ * @typedef {Object} ToolDescription
+ * @property {Tool} tool
+ * @property {string} url
  *
- * @typedef {Object} GetToolNameParams
+ * @typedef {Object} GetToolDescriptionParams
  * @property {Tool} tool
  * @property {string} version
  * @property {NodeJS.Platform} platform
  * @property {NodeJS.Architecture} arch
  *
- * @param {GetToolNameParams} params
- * @returns {GetToolNameResult}
+ * @param {GetToolDescriptionParams} params
+ * @returns {ToolDescription}
  */
-export function getToolName({ tool, version, platform, arch }) {
+export function getToolDescription({ tool, version, platform, arch }) {
   const log = createLog('tools')
 
   log('Getting tool name for', tool, version, platform, arch)
@@ -33,18 +34,25 @@ export function getToolName({ tool, version, platform, arch }) {
   }
 
   const suffix = getToolSuffix({ platform, arch })
-  log('Tool suffix:', suffix)
+  log('Tool suffix', suffix)
 
-  const ext = getArchiveExtension(platform)
-  log('Archive extension:', ext)
+  const ext = getArchiveExtension({ tool, platform })
+  log('Archive extension', ext)
 
-  const toolName = {
-    remoteFilename: `${tool}_${version}_${suffix}${ext}`,
-    localFilename: `${tool}${platform === 'win32' ? '.exe' : ''}`,
-  }
-  log('Tool name:', JSON.stringify(toolName))
+  const remoteFilename = `${tool}_${version}_${suffix}${ext}`
+  log('Remove filename', remoteFilename)
 
-  return toolName
+  const isClang = clangTools.includes(tool)
+  const url = `https://downloads.arduino.cc/${
+    isClang ? 'tools' : tool
+  }/${remoteFilename}`
+  log('URL', url)
+
+  const toolDescription = { tool, url }
+
+  log('Tool description', JSON.stringify(toolDescription))
+
+  return toolDescription
 }
 
 function getToolSuffix({ platform, arch }) {
@@ -68,11 +76,12 @@ function getToolSuffix({ platform, arch }) {
   throw new Error(`Unsupported platform: ${platform}, arch: ${arch}`)
 }
 
-function getArchiveExtension(platform) {
+function getArchiveExtension({ tool, platform }) {
+  const clang = clangTools.includes(tool)
   switch (platform) {
     case 'win32':
       return '.zip'
     default:
-      return '.tar.gz'
+      return `.tar${clang ? '.bz2' : '.gz'}`
   }
 }
