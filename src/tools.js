@@ -3,7 +3,7 @@ import { createLog } from './log.js'
 export const tools = /** @type {const} */ ([
   'arduino-cli',
   'arduino-language-server',
-  'arduino-fw-uploader',
+  'arduino-fwuploader',
   'clangd',
   'clangd-format',
 ])

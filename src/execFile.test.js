@@ -40,4 +40,14 @@ describe('execFile', () => {
 
     await expect(execFile('testFile', [])).rejects.toThrow(mockError)
   })
+
+  it('should return the stderr when errors with canError', async () => {
+    const mockError = Object.assign(new Error('an error'), { stderr: 'stderr' })
+    mockedExecFileCallback.mockImplementation((_file, _args, callback) =>
+      callback(mockError, { stdout: '', stderr: '' })
+    )
+
+    const result = await execFile('testFile', [], true)
+    expect(result).toEqual('stderr')
+  })
 })

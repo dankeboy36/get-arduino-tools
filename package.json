@@ -33,7 +33,10 @@
     "build": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --outfile=dist/cli.cjs",
     "format": "prettier --write .",
     "release": "semantic-release",
-    "test": "jest --coverage --verbose"
+    "test": "jest --coverage --verbose",
+    "test:all": "npm run test && npm run test:slow",
+    "pretest:slow": "npm run build",
+    "test:slow": "jest --config jest.config.slow.js"
   },
   "dependencies": {
     "@xhmikosr/decompress": "^10.0.1",
@@ -64,6 +67,7 @@
     "prettier": "^2.7.1",
     "prettier-plugin-organize-imports": "^4.1.0",
     "prettier-plugin-packagejson": "^2.4.7",
-    "semantic-release": "^21.0.7"
+    "semantic-release": "^21.0.7",
+    "tmp": "^0.2.3"
   }
 }
