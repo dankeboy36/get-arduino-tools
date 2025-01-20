@@ -32,15 +32,6 @@ describe('execFile', () => {
     )
   })
 
-  it('should throw an error if there is stderr output', async () => {
-    const mockStderr = 'error output'
-    mockedExecFileCallback.mockImplementation((_file, _args, callback) =>
-      callback(null, { stdout: '', stderr: mockStderr })
-    )
-
-    await expect(execFile('testFile', [])).rejects.toThrow(mockStderr)
-  })
-
   it('should re-throw the error', async () => {
     const mockError = new Error('an error')
     mockedExecFileCallback.mockImplementation((_file, _args, callback) =>

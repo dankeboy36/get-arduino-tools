@@ -11,11 +11,6 @@ export async function execFile(file, args) {
   const log = createLog('execFile')
 
   log(`execFile: ${file} ${args.join(' ')}`)
-  const { stdout, stderr } = await promisify(cp.execFile)(file, args)
-  if (stderr) {
-    log('unexpected stderr', stderr)
-    throw new Error(stderr)
-  }
-  log('stdout', stdout)
+  const { stdout } = await promisify(cp.execFile)(file, args)
   return stdout.trim()
 }
