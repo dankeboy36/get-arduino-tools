@@ -16,7 +16,7 @@ Get Arduino Tools
 
 ## Installation
 
-To install `gat` globally using npm:
+To install `gat` globally:
 
 ```bash
 npm install -g gat
@@ -53,13 +53,13 @@ To download the Arduino CLI version `1.1.1` to the current working directory:
 gat get arduino-cli 1.1.1
 ```
 
-To download clangd for the Arduino language server with verbose output:
+To download `clangd` for the Arduino language server with verbose output:
 
 ```bash
 gat get clangd 12.0.0 --verbose
 ```
 
-To download the Arduino CLI version 1.1.1 to a target folder:
+To download the Arduino CLI version `1.1.1` to a destination folder:
 
 ```bash
 gat get arduino-cli 1.1.1 --destination-folder-path /path/to/my/folder
@@ -89,40 +89,40 @@ To set up the development environment for `gat`, follow these steps:
 
 1. Clone the repository:
 
-```bash
-git clone https://github.com/dankeboy36/gat.git
-cd gat
-```
+   ```bash
+   git clone https://github.com/dankeboy36/gat.git
+   cd gat
+   ```
 
 2. Install the dependencies:
 
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-2. Build the CLI
+3. Build the CLI
 
-```bash
-npm run build
-```
+   ```bash
+   npm run build
+   ```
 
 4. Run the CLI tool locally:
 
-```bash
-node bin/cli.js get <tool> <version> [options]
-```
+   ```bash
+   node bin/cli.js get <tool> <version> [options]
+   ```
 
 5. To run tests:
 
-```bash
-npm test
-```
+   ```bash
+   npm test
+   ```
 
 6. To run the integration tests:
 
-```bash
-npm run test:slow
-```
+   ```bash
+   npm run test:slow
+   ```
 
 ## Contributing
 
