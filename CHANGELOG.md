@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.0...1.0.1) (2025-01-21)
+
+
+### Bug Fixes
+
+* **doc:** correct tool names and repository URL in the README ([#3](https://github.com/dankeboy36/get-arduino-tools/issues/3)) ([308db2f](https://github.com/dankeboy36/get-arduino-tools/commit/308db2f9ecf72dc94144a471840837900e72d764))
+
 # 1.0.0 (2025-01-21)
 
 
