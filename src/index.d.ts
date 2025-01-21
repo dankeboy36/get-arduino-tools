@@ -7,7 +7,9 @@ const clangTools = ['clangd', 'clang-format'] as const
 
 export const tools = [...arduinoTools, ...clangTools]
 
-export declare type Tool = (typeof tools)[number]
+export declare type ArduinoTool = (typeof arduinoTools)[number]
+export declare type ClangTool = (typeof clangTools)[number]
+export declare type Tool = ArduinoTool | ClangTool
 
 export declare interface GetToolParams {
   tool: Tool

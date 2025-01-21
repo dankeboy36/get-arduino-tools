@@ -2,23 +2,33 @@ import { posix } from 'node:path'
 
 import { createLog } from './log.js'
 
-const arduinoTools = /** @type {const} */ ([
+/**
+ * @typedef {import('./index.js').Tool} Tool
+ * @typedef {import('./index.js').ArduinoTool} ArduinoTool
+ */
+
+const arduinoTools = [
   'arduino-cli',
   'arduino-language-server',
   'arduino-fwuploader',
+]
+const clangTools = ['clangd', 'clang-format']
+export const tools = /** @type {readonly Tool[]} */ ([
+  ...arduinoTools,
+  ...clangTools,
 ])
-const clangTools = /** @type {const} */ (['clangd', 'clang-format'])
-export const tools = /** @type {const} */ ([...arduinoTools, ...clangTools])
 
+/**
+ * @param {Tool} tool
+ * @returns {tool is ArduinoTool}
+ */
 export function isArduinoTool(tool) {
   return arduinoTools.includes(tool)
 }
 
 /**
- * @typedef {typeof tools[number]} Tool
- *
  * @typedef {Object} GetDownloadUrlParams
- * @property {Tool} tool
+ * @property {import('./index.js').Tool} tool
  * @property {string} version
  * @property {NodeJS.Platform} platform
  * @property {NodeJS.Architecture} arch
