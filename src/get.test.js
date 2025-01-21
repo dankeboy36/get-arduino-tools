@@ -107,6 +107,7 @@ describe('get', () => {
       version: mockVersion,
       destinationFolderPath: mockDestinationFolderPath,
       force: true,
+      platform: 'linux',
     })
 
     expect(fs.copyFile).toHaveBeenCalledWith(
