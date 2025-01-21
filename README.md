@@ -7,8 +7,8 @@ Get Arduino Tools (`gat`) is a CLI that helps you easily download various Arduin
 ## Tools
 
 - [Arduino CLI](https://github.com/arduino/arduino-cli)
-- [Arduino language server](https://github.com/arduino/arduino-language-server)
-- [Firmware uploader](https://github.com/arduino/arduino-fwuploader)
+- [Arduino Language Server](https://github.com/arduino/arduino-language-server)
+- [Arduino Firmware Uploader](https://github.com/arduino/arduino-fwuploader)
 - [`clangd`](https://github.com/arduino/clang-static-binaries)
 - [`clang-format`](https://github.com/arduino/clang-static-binaries)
 
