@@ -32,5 +32,5 @@ module.exports = {
     ],
     'import/newline-after-import': 'error',
   },
-  ignorePatterns: ['out', 'dist', '**/*.d.ts'],
+  ignorePatterns: ['dist'],
 }
