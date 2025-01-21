@@ -7,8 +7,8 @@ Get Arduino Tools (`gat`) is a CLI that helps you easily download various Arduin
 ## Tools
 
 - [Arduino CLI](https://github.com/arduino/arduino-cli)
-- [Arduino language server](https://github.com/arduino/arduino-language-server)
-- [Firmware uploader](https://github.com/arduino/arduino-fwuploader)
+- [Arduino Language Server](https://github.com/arduino/arduino-language-server)
+- [Arduino Firmware Uploader](https://github.com/arduino/arduino-fwuploader)
 - [`clangd`](https://github.com/arduino/clang-static-binaries)
 - [`clang-format`](https://github.com/arduino/clang-static-binaries)
 
@@ -32,7 +32,7 @@ gat get <tool> <version> [options]
 
 #### Arguments
 
-- `<tool>`: The tool you want to download. Can be one of: `arduino-cli`, `arduino-language-server`, `firmware-uploader`, `clangd`, `clang-format`.
+- `<tool>`: The tool you want to download. Can be one of: `arduino-cli`, `arduino-language-server`, `arduino-fwuploader`, `clangd`, `clang-format`.
 - `<version>`: The version of the tool you want to download.
 
 #### Options
@@ -83,12 +83,12 @@ Use the `HTTP_PROXY` and the `HTTPS_PROXY` environment variables to configure th
 
 ## Development Setup
 
-To set up the development environment for `gat`, follow these steps:
+To set up the development environment, follow these steps:
 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/dankeboy36/gat.git
+   git clone https://github.com/dankeboy36/get-arduino-tools.git
    cd gat
    ```
 
