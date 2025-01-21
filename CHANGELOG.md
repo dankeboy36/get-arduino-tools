@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.1...1.0.2) (2025-01-21)
+
+
+### Bug Fixes
+
+* **release:** correct `files` declaration in `package.json` ([#6](https://github.com/dankeboy36/get-arduino-tools/issues/6)) ([76525a2](https://github.com/dankeboy36/get-arduino-tools/commit/76525a2f3087820fce26095c857ec5eab53066ea)), closes [#4](https://github.com/dankeboy36/get-arduino-tools/issues/4) [#5](https://github.com/dankeboy36/get-arduino-tools/issues/5)
+
 ## [1.0.1](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.0...1.0.1) (2025-01-21)
 
 
