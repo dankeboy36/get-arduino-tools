@@ -4,7 +4,7 @@ import path from 'node:path'
 import { download } from './download.js'
 import { extract } from './extract.js'
 import { createLog } from './log.js'
-import { getToolDescription, tools } from './tools.js'
+import { getDownloadUrl, isArduinoTool, tools } from './tools.js'
 
 /**
  * @typedef {Object} GetToolParams
@@ -31,7 +31,7 @@ export async function getTool({
 }) {
   const log = createLog('getTool')
 
-  const { url } = getToolDescription({
+  const url = getDownloadUrl({
     tool,
     version,
     platform,
@@ -49,7 +49,8 @@ export async function getTool({
     throw new Error(`Failed to download from ${url}`)
   }
 
-  const extractResult = await extract({ buffer })
+  const strip = isArduinoTool(tool) ? undefined : 1 // clangd and clang-format are in a folder inside the archive
+  const extractResult = await extract({ buffer, strip })
 
   try {
     const basename = `${tool}${platform === 'win32' ? '.exe' : ''}`

@@ -15,9 +15,14 @@ import { execFile } from './execFile.js'
 const tmpDir = promisify(tmp.dir)
 
 /** @type {CliTestParams['expectVersion']} */
-const defaultExpectVersion = async (toolPath, expected) => {
+const arduinoToolExpectVersion = async (toolPath, expected) => {
   const stdout = await execFile(toolPath, ['version', '--format', 'json'])
   expect(JSON.parse(stdout).VersionString).toBe(expected)
+}
+/** @type {CliTestParams['expectVersion']} */
+const clangToolExpectVersion = async (toolPath, expected) => {
+  const stdout = await execFile(toolPath, ['--version'])
+  expect(stdout).toContain(expected)
 }
 
 describe('cli', () => {
@@ -26,20 +31,31 @@ describe('cli', () => {
     {
       tool: 'arduino-cli',
       version: '1.1.1',
-      expectVersion: defaultExpectVersion,
+      expectVersion: arduinoToolExpectVersion,
     },
     {
       tool: 'arduino-fwuploader',
       version: '2.4.1',
-      expectVersion: defaultExpectVersion,
+      expectVersion: arduinoToolExpectVersion,
     },
     {
       tool: 'arduino-language-server',
       version: '0.7.6',
       expectVersion: async (toolPath) => {
+        // The Arduino LS requires the CLI and clangd. The assertion expects a failure.
         const stdout = await execFile(toolPath, ['version'], true)
         expect(stdout).toContain('Path to ArduinoCLI config file must be set')
       },
+    },
+    {
+      tool: 'clangd',
+      version: '14.0.0',
+      expectVersion: clangToolExpectVersion,
+    },
+    {
+      tool: 'clang-format',
+      version: '14.0.0',
+      expectVersion: clangToolExpectVersion,
     },
   ]
   params.map(({ tool, version, expectVersion }) =>

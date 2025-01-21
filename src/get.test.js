@@ -5,7 +5,7 @@ import { download } from './download.js'
 import { extract } from './extract.js'
 import { getTool } from './get.js'
 import { createLog } from './log.js'
-import { getToolDescription } from './tools.js'
+import { getDownloadUrl } from './tools.js'
 
 jest.mock('@xhmikosr/decompress', () => ({
   __esModule: true,
@@ -35,16 +35,20 @@ describe('get', () => {
     jest.mocked(createLog).mockReturnValue(log)
     jest.mocked(download).mockResolvedValue(mockBuffer)
     jest.mocked(extract).mockResolvedValue(mockExtractResult)
-    jest.mocked(getToolDescription).mockReturnValue({
-      tool: mockTool,
-      url: 'https://downloads.arduino.cc/mock',
-    })
+    jest
+      .mocked(getDownloadUrl)
+      .mockReturnValue('https://downloads.arduino.cc/mock')
     jest.clearAllMocks()
   })
 
   it('should download, extract, and copy the tool', async () => {
+    jest.mocked(getDownloadUrl).mockImplementation((arg) => {
+      const toolsModule = jest.requireActual('./tools.js')
+      return toolsModule.getDownloadUrl(arg)
+    })
+
     const result = await getTool({
-      tool: mockTool,
+      tool: 'arduino-cli',
       version: mockVersion,
       destinationFolderPath: mockDestinationFolderPath,
       platform: mockPlatform,
@@ -52,18 +56,35 @@ describe('get', () => {
     })
 
     expect(download).toHaveBeenCalledWith({
-      url: 'https://downloads.arduino.cc/mock',
+      url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_1.0.0_Linux_64bit.tar.gz',
     })
-    expect(extract).toHaveBeenCalledWith({ buffer: mockBuffer })
+    expect(extract).toHaveBeenCalledWith({ buffer: mockBuffer, strip: 1 })
     expect(fs.copyFile).toHaveBeenCalledWith(
-      path.join('/mock/extracted', 'mockTool'),
-      path.join(mockDestinationFolderPath, 'mockTool'),
+      path.join('/mock/extracted', 'arduino-cli'),
+      path.join(mockDestinationFolderPath, 'arduino-cli'),
       fs.constants.COPYFILE_EXCL
     )
     expect(mockExtractResult.dispose).toHaveBeenCalled()
     expect(result.toolPath).toBe(
-      path.join(mockDestinationFolderPath, 'mockTool')
+      path.join(mockDestinationFolderPath, 'arduino-cli')
     )
+  })
+
+  it('should strip one parent folder when extracting a non-Arduino tool', async () => {
+    jest.mocked(getDownloadUrl).mockImplementation((arg) => {
+      const toolsModule = jest.requireActual('./tools.js')
+      return toolsModule.getDownloadUrl(arg)
+    })
+
+    await getTool({
+      tool: 'clangd',
+      version: mockVersion,
+      destinationFolderPath: mockDestinationFolderPath,
+      platform: mockPlatform,
+      arch: mockArch,
+    })
+
+    expect(extract).toHaveBeenCalledWith({ buffer: mockBuffer, strip: 1 })
   })
 
   it('should throw an error if download fails', async () => {

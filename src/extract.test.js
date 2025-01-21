@@ -34,7 +34,7 @@ describe('extract', () => {
     const result = await extract({ buffer })
 
     expect(fs.mkdtemp).toHaveBeenCalledWith(path.join('/tmp', 'gat-'))
-    expect(decompress).toHaveBeenCalledWith(buffer, mockTempDir)
+    expect(decompress).toHaveBeenCalledWith(buffer, mockTempDir, { strip: 0 })
     expect(result.destinationPath).toBe(mockTempDir)
   })
 

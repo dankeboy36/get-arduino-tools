@@ -10,6 +10,7 @@ import { rm } from './rm.js'
 /**
  * @typedef {Object} ExtractParams
  * @property {Uint8Array<ArrayBufferLike>} buffer
+ * @property {number} [strip=0] Remove leading directory components from extracted files
  *
  * @typedef {Object} ExtractResult
  * @property {string} destinationPath
@@ -18,13 +19,13 @@ import { rm } from './rm.js'
  * @param {ExtractParams} params
  * @returns {Promise<ExtractResult>}
  */
-export async function extract({ buffer }) {
+export async function extract({ buffer, strip = 0 }) {
   const log = createLog('extract')
 
   const destinationPath = await fs.mkdtemp(path.join(os.tmpdir(), 'gat-'))
   log('Extracting to', destinationPath)
   try {
-    await decompress(buffer, destinationPath)
+    await decompress(buffer, destinationPath, { strip })
   } catch (err) {
     log('Error extracting to', destinationPath, err)
     try {

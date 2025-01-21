@@ -1,31 +1,32 @@
+import { posix } from 'node:path'
+
 import { createLog } from './log.js'
 
-const clangTools = /** @type {const} */ (['clangd', 'clangd-format'])
-
-export const tools = /** @type {const} */ ([
+const arduinoTools = /** @type {const} */ ([
   'arduino-cli',
   'arduino-language-server',
   'arduino-fwuploader',
-  ...clangTools,
 ])
+const clangTools = /** @type {const} */ (['clangd', 'clang-format'])
+export const tools = /** @type {const} */ ([...arduinoTools, ...clangTools])
+
+export function isArduinoTool(tool) {
+  return arduinoTools.includes(tool)
+}
 
 /**
  * @typedef {typeof tools[number]} Tool
  *
- * @typedef {Object} ToolDescription
- * @property {Tool} tool
- * @property {string} url
- *
- * @typedef {Object} GetToolDescriptionParams
+ * @typedef {Object} GetDownloadUrlParams
  * @property {Tool} tool
  * @property {string} version
  * @property {NodeJS.Platform} platform
  * @property {NodeJS.Architecture} arch
  *
- * @param {GetToolDescriptionParams} params
- * @returns {ToolDescription}
+ * @param {GetDownloadUrlParams} params
+ * @returns {string}
  */
-export function getToolDescription({ tool, version, platform, arch }) {
+export function getDownloadUrl({ tool, version, platform, arch }) {
   const log = createLog('tools')
 
   log('Getting tool name for', tool, version, platform, arch)
@@ -42,17 +43,13 @@ export function getToolDescription({ tool, version, platform, arch }) {
   const remoteFilename = `${tool}_${version}_${suffix}${ext}`
   log('Remove filename', remoteFilename)
 
-  const isClang = clangTools.includes(tool)
-  const url = `https://downloads.arduino.cc/${
-    isClang ? 'tools' : tool
-  }/${remoteFilename}`
+  const downloadUrl = new URL('https://downloads.arduino.cc')
+  const category = isArduinoTool(tool) ? tool : 'tools'
+  downloadUrl.pathname = posix.join(category, remoteFilename)
+  const url = downloadUrl.toString()
   log('URL', url)
 
-  const toolDescription = { tool, url }
-
-  log('Tool description', JSON.stringify(toolDescription))
-
-  return toolDescription
+  return url
 }
 
 function getToolSuffix({ platform, arch }) {
