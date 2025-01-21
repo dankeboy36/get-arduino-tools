@@ -21,12 +21,10 @@
   "exports": {
     ".": "./dist/index.js"
   },
-  "main": "src/index.js",
   "bin": {
     "gat": "bin/cli.js"
   },
   "files": [
-    "src",
     "bin",
     "dist/cli.cjs"
   ],
