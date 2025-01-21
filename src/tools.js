@@ -74,11 +74,13 @@ function getToolSuffix({ platform, arch }) {
 }
 
 function getArchiveExtension({ tool, platform }) {
-  const clang = clangTools.includes(tool)
+  if (!isArduinoTool(tool)) {
+    return '.tar.bz2'
+  }
   switch (platform) {
     case 'win32':
       return '.zip'
     default:
-      return `.tar${clang ? '.bz2' : '.gz'}`
+      return '.tar.gz'
   }
 }

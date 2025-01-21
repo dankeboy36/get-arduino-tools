@@ -91,19 +91,6 @@ describe('getDownloadUrl', () => {
     )
   })
 
-  it('should use tool in the URL for clangd on Windows', () => {
-    const params = /** @type {const} */ ({
-      tool: 'clangd',
-      version: '0.18.3',
-      platform: 'win32',
-      arch: 'x64',
-    })
-    const result = getDownloadUrl(params)
-    expect(result).toEqual(
-      'https://downloads.arduino.cc/tools/clangd_0.18.3_Windows_64bit.zip'
-    )
-  })
-
   it('should use tool in the URL for clangd on non-Windows', () => {
     const params = /** @type {const} */ ({
       tool: 'clangd',
