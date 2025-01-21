@@ -1,6 +1,4 @@
 .DS_Store
 node_modules
 coverage
-arduino-*
-clangd*
 dist
