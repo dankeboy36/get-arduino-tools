@@ -83,12 +83,12 @@ Use the `HTTP_PROXY` and the `HTTPS_PROXY` environment variables to configure th
 
 ## Development Setup
 
-To set up the development environment for `gat`, follow these steps:
+To set up the development environment, follow these steps:
 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/dankeboy36/gat.git
+   git clone https://github.com/dankeboy36/get-arduino-tools.git
    cd gat
    ```
 
