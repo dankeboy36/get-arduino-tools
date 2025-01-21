@@ -5,7 +5,7 @@ import { download } from './download.js'
 import { extract } from './extract.js'
 import { getTool } from './get.js'
 import { createLog } from './log.js'
-import { getDownloadUrl } from './tools.js'
+import { getDownloadUrl, isArduinoTool } from './tools.js'
 
 jest.mock('@xhmikosr/decompress', () => ({
   __esModule: true,
@@ -39,12 +39,17 @@ describe('get', () => {
       .mocked(getDownloadUrl)
       .mockReturnValue('https://downloads.arduino.cc/mock')
     jest.clearAllMocks()
+    jest.mocked(isArduinoTool).mockReturnValue(false)
   })
 
   it('should download, extract, and copy the tool', async () => {
-    jest.mocked(getDownloadUrl).mockImplementation((arg) => {
+    jest.mocked(getDownloadUrl).mockImplementation((params) => {
       const toolsModule = jest.requireActual('./tools.js')
-      return toolsModule.getDownloadUrl(arg)
+      return toolsModule.getDownloadUrl(params)
+    })
+    jest.mocked(isArduinoTool).mockImplementation((tool) => {
+      const toolsModule = jest.requireActual('./tools.js')
+      return toolsModule.isArduinoTool(tool)
     })
 
     const result = await getTool({
@@ -58,7 +63,10 @@ describe('get', () => {
     expect(download).toHaveBeenCalledWith({
       url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_1.0.0_Linux_64bit.tar.gz',
     })
-    expect(extract).toHaveBeenCalledWith({ buffer: mockBuffer, strip: 1 })
+    expect(extract).toHaveBeenCalledWith({
+      buffer: mockBuffer,
+      strip: undefined,
+    })
     expect(fs.copyFile).toHaveBeenCalledWith(
       path.join('/mock/extracted', 'arduino-cli'),
       path.join(mockDestinationFolderPath, 'arduino-cli'),
@@ -71,9 +79,13 @@ describe('get', () => {
   })
 
   it('should strip one parent folder when extracting a non-Arduino tool', async () => {
-    jest.mocked(getDownloadUrl).mockImplementation((arg) => {
+    jest.mocked(getDownloadUrl).mockImplementation((params) => {
       const toolsModule = jest.requireActual('./tools.js')
-      return toolsModule.getDownloadUrl(arg)
+      return toolsModule.getDownloadUrl(params)
+    })
+    jest.mocked(isArduinoTool).mockImplementation((tool) => {
+      const toolsModule = jest.requireActual('./tools.js')
+      return toolsModule.isArduinoTool(tool)
     })
 
     await getTool({
