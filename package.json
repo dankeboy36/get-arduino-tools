@@ -20,20 +20,24 @@
   "exports": {
     ".": "./dist/index.js"
   },
+  "types": "./src/index.d.ts",
   "bin": {
     "gat": "bin/cli.js"
   },
   "files": [
     "bin",
-    "dist/cli.cjs"
+    "dist",
+    "src/index.d.ts"
   ],
   "scripts": {
-    "build": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --minify --sourcemap --outfile=dist/cli.cjs",
+    "build": "npm run build:lib && npm run build:cli",
+    "build:cli": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --minify --outfile=dist/cli.cjs",
+    "build:lib": "esbuild src/index.js --bundle --platform=node --target=node22 --format=esm --minify --sourcemap --outfile=dist/index.js",
     "format": "prettier --write .",
     "release": "semantic-release",
     "test": "jest --coverage --verbose",
     "test:all": "npm run test && npm run test:slow",
-    "pretest:slow": "npm run build",
+    "pretest:slow": "npm run build:cli",
     "test:slow": "jest --config jest.config.slow.js"
   },
   "dependencies": {

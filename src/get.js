@@ -7,19 +7,7 @@ import { createLog } from './log.js'
 import { getDownloadUrl, isArduinoTool, tools } from './tools.js'
 
 /**
- * @typedef {Object} GetToolParams
- * @property {import('./tools.js').Tool} tool
- * @property {string} version
- * @property {string} destinationFolderPath
- * @property {NodeJS.Platform} [platform=process.platform]
- * @property {NodeJS.Architecture} [arch=process.arch]
- * @property {boolean} [force=false]
- *
- * @typedef {Object} GetToolResult
- * @property {string} toolPath
- *
- * @param {GetToolParams} params
- * @returns {Promise<GetToolResult>}
+ * @type {typeof import('./index.js').getTool}
  */
 export async function getTool({
   tool,
