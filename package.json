@@ -1,11 +1,12 @@
 {
   "name": "gat",
   "version": "1.0.0",
-  "description": "Get Arduino tool",
+  "description": "gat is a tool that helps you easily download various Arduino tools",
   "keywords": [
     "arduino",
     "tool",
-    "download"
+    "download",
+    "clang"
   ],
   "bugs": {
     "url": "https://github.com/dankeboy36/gat/issues"
