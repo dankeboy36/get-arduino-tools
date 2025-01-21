@@ -32,6 +32,8 @@ jobs:
         run: npm run format && git diff --exit-code
       - name: Test
         run: npm test
+      - name: Slow Test
+        run: npm run test:slow
 
   release:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
