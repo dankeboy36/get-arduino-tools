@@ -30,7 +30,7 @@
     "dist/cli.cjs"
   ],
   "scripts": {
-    "build": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --outfile=dist/cli.cjs",
+    "build": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --minify --sourcemap --outfile=dist/cli.cjs",
     "format": "prettier --write .",
     "release": "semantic-release",
     "test": "jest --coverage --verbose",
