@@ -32,7 +32,7 @@ gat get <tool> <version> [options]
 
 #### Arguments
 
-- `<tool>`: The tool you want to download. Can be one of: `arduino-cli`, `arduino-language-server`, `firmware-uploader`, `clangd`, `clang-format`.
+- `<tool>`: The tool you want to download. Can be one of: `arduino-cli`, `arduino-language-server`, `arduino-fwuploader`, `clangd`, `clang-format`.
 - `<version>`: The version of the tool you want to download.
 
 #### Options
