@@ -28,7 +28,7 @@ export function isArduinoTool(tool) {
 
 /**
  * @typedef {Object} GetDownloadUrlParams
- * @property {import('./index.js').Tool} tool
+ * @property {Tool} tool
  * @property {string} version
  * @property {NodeJS.Platform} platform
  * @property {NodeJS.Architecture} arch
