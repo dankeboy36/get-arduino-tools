@@ -1,7 +1,7 @@
 {
-  "name": "gat",
+  "name": "get-arduino-tools",
   "version": "1.0.0",
-  "description": "gat is a tool that helps you easily download various Arduino tools",
+  "description": "Get Arduino Tools (`gat`) is a CLI that helps you easily download various Arduino tools",
   "keywords": [
     "arduino",
     "tool",
@@ -9,11 +9,10 @@
     "clang"
   ],
   "bugs": {
-    "url": "https://github.com/dankeboy36/gat/issues"
+    "url": "git+https://github.com/dankeboy36/get-arduino-tools/issues"
   },
   "repository": {
-    "type": "git",
-    "url": "https://github.com/dankeboy36/gat.git"
+    "url": "git+https://github.com/dankeboy36/get-arduino-tools.git"
   },
   "license": "MIT",
   "author": "dankeboy36",

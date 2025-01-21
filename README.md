@@ -1,8 +1,6 @@
-# gat
+# get-arduino-tools
 
-Get Arduino Tools
-
-`gat` is a tool that helps you easily download various Arduino tools.
+Get Arduino Tools (`gat`) is a CLI that helps you easily download various Arduino tools
 
 > This library simplifies obtaining essential tools for developing with the [Arduino CLI's gRPC API](https://arduino.github.io/arduino-cli/latest/rpc/commands/). **Note that this is not a new feature of Arduino**, but a tool to enhance the existing development experience. By streamlining the download of tools like the Arduino CLI, language server, and clang tools, `gat` reduces setup time and lets developers focus on their projects without installation complexities. With `gat`, developers can quickly maximize productivity.
 
@@ -16,10 +14,10 @@ Get Arduino Tools
 
 ## Installation
 
-To install `gat` globally:
+To install the `gat` CLI globally:
 
 ```bash
-npm install -g gat
+npm install -g get-arduino-tools
 ```
 
 ## Usage
@@ -68,7 +66,7 @@ gat get arduino-cli 1.1.1 --destination-folder-path /path/to/my/folder
 ### API
 
 ```js
-import { getTool } from 'gat'
+import { getTool } from 'get-arduino-tools'
 
 getTool({
   tool: 'arduino-cli',
