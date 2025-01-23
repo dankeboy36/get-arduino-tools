@@ -66,15 +66,14 @@ gat get arduino-cli 1.1.1 --destination-folder-path /path/to/my/folder
 ### API
 
 ```js
-import { getTool } from 'get-arduino-tools'
+const { getTool } = require('get-arduino-tools')
 
 getTool({
   tool: 'arduino-cli',
   version: '1.1.1',
   destinationFolderPath: 'path/to/the/dir',
-  platform: 'linux',
-}).then(console.log)
-// prints path/to/the/dir/arduino-cli
+}).then((result) => console.log(result), console.error)
+// { toolPath: 'path/to/the/dir/arduino-cli' }
 ```
 
 ### Proxy Support
