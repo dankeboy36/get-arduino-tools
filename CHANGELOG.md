@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.2...1.0.3) (2025-01-23)
+
+
+### Bug Fixes
+
+* **release:** switch to `cjs` format ([#7](https://github.com/dankeboy36/get-arduino-tools/issues/7)) ([0b6e03e](https://github.com/dankeboy36/get-arduino-tools/commit/0b6e03e28a0b5956006a8489d141d1806f00070d))
+
 ## [1.0.2](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.1...1.0.2) (2025-01-21)
 
 
