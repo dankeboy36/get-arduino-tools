@@ -1,4 +1,5 @@
 import { enable } from 'debug'
+import waitFor from 'wait-for-expect'
 
 import { parse } from './cli.js'
 import { getTool } from './get.js'
@@ -12,10 +13,14 @@ jest.mock('debug', () => ({
 jest.mock('./get.js')
 
 describe('cli', () => {
+  let mockLog
   let consoleSpy
 
   beforeAll(() => {
-    consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+    mockLog = jest.fn()
+    consoleSpy = jest
+      .spyOn(console, 'log')
+      .mockImplementation((args) => mockLog(args))
     jest.mocked(getTool).mockResolvedValue({ toolPath: '' })
   })
 
@@ -48,6 +53,22 @@ describe('cli', () => {
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '--verbose'])
 
     expect(enable).toHaveBeenCalledWith('*')
+  })
+
+  it('should omit the error stacktrace from the CLI output', async () => {
+    jest.mocked(getTool).mockRejectedValueOnce(Error('my error'))
+
+    parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1'])
+
+    await waitFor(() => expect(mockLog).toHaveBeenCalledWith('my error'))
+  })
+
+  it('should print the reason as is when has no message', async () => {
+    jest.mocked(getTool).mockRejectedValueOnce('just string')
+
+    parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1'])
+
+    await waitFor(() => expect(mockLog).toHaveBeenCalledWith('just string'))
   })
 
   it('should override the destination with the -d flag', () => {

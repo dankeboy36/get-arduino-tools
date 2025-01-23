@@ -33,13 +33,18 @@ export function parse(args) {
       if (options.verbose === true) {
         enable('*')
       }
-      const { toolPath } = await getTool({
-        tool,
-        version,
-        ...options,
-      })
-      log('Tool downloaded to', toolPath)
-      console.log(toolPath)
+      try {
+        const { toolPath } = await getTool({
+          tool,
+          version,
+          ...options,
+        })
+        log('Tool downloaded to', toolPath)
+        console.log(toolPath)
+      } catch (err) {
+        log('Failed to download tool', err)
+        console.log(err?.message || err)
+      }
     })
 
   program.parse(args)
