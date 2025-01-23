@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.3...1.0.4) (2025-01-23)
+
+
+### Bug Fixes
+
+* omit the error stacktrace from the CLI output ([#8](https://github.com/dankeboy36/get-arduino-tools/issues/8)) ([b940c41](https://github.com/dankeboy36/get-arduino-tools/commit/b940c41f1b6fc09c040e5714b3a594ca4e0f412d))
+
 ## [1.0.3](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.2...1.0.3) (2025-01-23)
 
 
