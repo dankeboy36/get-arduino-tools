@@ -89,7 +89,7 @@ To set up the development environment, follow these steps:
 
    ```bash
    git clone https://github.com/dankeboy36/get-arduino-tools.git
-   cd gat
+   cd get-arduino-tools
    ```
 
 2. Install the dependencies:
