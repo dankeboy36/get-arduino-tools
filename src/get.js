@@ -1,9 +1,12 @@
-import fs, { constants } from 'node:fs/promises'
+import { createReadStream } from 'node:fs'
+import fs from 'node:fs/promises'
 import path from 'node:path'
+import { pipeline } from 'node:stream/promises'
 
 import { download } from './download.js'
 import { extract } from './extract.js'
 import { createLog } from './log.js'
+import { rm } from './rm.js'
 import { getDownloadUrl, isArduinoTool, tools } from './tools.js'
 
 /**
@@ -26,54 +29,48 @@ export async function getTool({
     arch,
   })
 
-  /** @type {Uint8Array<ArrayBufferLike>|undefined} */
-  let buffer
-  try {
-    buffer = await download({ url })
-  } catch (err) {
-    log(`Failed to download from ${url}`, err)
-  }
-  if (!buffer) {
-    throw new Error(`Failed to download from ${url}`)
-  }
+  /** @type {(()=>Promise<void>)|undefined} */
+  let toCleanup
 
-  const strip = isArduinoTool(tool) ? undefined : 1 // clangd and clang-format are in a folder inside the archive
-  const extractResult = await extract({ buffer, strip })
+  const basename = `${tool}${platform === 'win32' ? '.exe' : ''}`
+  const destinationPath = path.join(destinationFolderPath, basename)
+  const flags = force ? 'w' : 'wx'
 
   try {
-    const basename = `${tool}${platform === 'win32' ? '.exe' : ''}`
+    const destinationFd = await fs.open(destinationPath, flags)
+    if (!force) {
+      toCleanup = () => rm(destinationPath)
+    }
+    const destination = destinationFd.createWriteStream()
+
+    const buffer = await download({ url })
+
+    const strip = isArduinoTool(tool) ? undefined : 1 // clangd and clang-format are in a folder inside the archive
+    const extractResult = await extract({ buffer, strip })
+
     const sourcePath = path.join(extractResult.destinationPath, basename)
-    const destinationPath = path.join(destinationFolderPath, basename)
+    const source = createReadStream(sourcePath)
 
-    await copy(sourcePath, destinationPath, force, log)
+    try {
+      await pipeline(source, destination)
+      toCleanup = undefined
+    } finally {
+      await extractResult.dispose()
+    }
 
     return { toolPath: destinationPath }
-  } finally {
-    await extractResult.dispose()
-  }
-}
-
-/**
- *
- * @param {string} sourcePath
- * @param {string} destinationPath
- * @param {boolean} force
- * @param {ReturnType<createLog>} log
- */
-async function copy(sourcePath, destinationPath, force, log) {
-  log('Copying', sourcePath, 'to', destinationPath, 'with force', force)
-  const mode = force ? undefined : constants.COPYFILE_EXCL
-  try {
-    await fs.copyFile(sourcePath, destinationPath, mode)
   } catch (err) {
+    const errMessage = `Failed to download from ${url}`
+    log(errMessage, err)
     if (err.code === 'EEXIST' && !force) {
       const eexistMessage = `Tool already exists: ${destinationPath}. Use --force to overwrite.`
       log(eexistMessage)
       throw new Error(eexistMessage)
     }
-    throw err
+    throw new Error(errMessage)
+  } finally {
+    await toCleanup?.()
   }
-  log('Copied')
 }
 
 export { tools }

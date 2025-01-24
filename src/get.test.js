@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { pipeline } from 'node:stream/promises'
 
 import { download } from './download.js'
 import { extract } from './extract.js'
@@ -12,7 +13,9 @@ jest.mock('@xhmikosr/decompress', () => ({
   default: jest.fn(), // https://archive.jestjs.io/docs/en/23.x/jest-object
 }))
 
+jest.mock('node:fs')
 jest.mock('node:fs/promises')
+jest.mock('node:stream/promises')
 jest.mock('./download.js')
 jest.mock('./extract.js')
 jest.mock('./log.js')
@@ -30,6 +33,9 @@ describe('get', () => {
     destinationPath: '/mock/extracted',
     dispose: jest.fn(),
   }
+  const mockedFd = {
+    createWriteStream: jest.fn(),
+  }
 
   beforeEach(() => {
     jest.mocked(createLog).mockReturnValue(log)
@@ -40,9 +46,12 @@ describe('get', () => {
       .mockReturnValue('https://downloads.arduino.cc/mock')
     jest.clearAllMocks()
     jest.mocked(isArduinoTool).mockReturnValue(false)
+    jest.mocked(fs.open).mockReturnValue(mockedFd)
+    jest.mocked(fs.rm).mockResolvedValue(Promise.resolve())
+    jest.mocked(pipeline).mockReturnValue(Promise.resolve())
   })
 
-  it('should download, extract, and copy the tool', async () => {
+  it('should open a file, download, extract, and pipe the tool to the file', async () => {
     jest.mocked(getDownloadUrl).mockImplementation((params) => {
       const toolsModule = jest.requireActual('./tools.js')
       return toolsModule.getDownloadUrl(params)
@@ -60,6 +69,10 @@ describe('get', () => {
       arch: mockArch,
     })
 
+    expect(fs.open).toHaveBeenCalledWith(
+      path.join(mockDestinationFolderPath, 'arduino-cli'),
+      'wx'
+    )
     expect(download).toHaveBeenCalledWith({
       url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_1.0.0_Linux_64bit.tar.gz',
     })
@@ -67,11 +80,6 @@ describe('get', () => {
       buffer: mockBuffer,
       strip: undefined,
     })
-    expect(fs.copyFile).toHaveBeenCalledWith(
-      path.join('/mock/extracted', 'arduino-cli'),
-      path.join(mockDestinationFolderPath, 'arduino-cli'),
-      fs.constants.COPYFILE_EXCL
-    )
     expect(mockExtractResult.dispose).toHaveBeenCalled()
     expect(result.toolPath).toBe(
       path.join(mockDestinationFolderPath, 'arduino-cli')
@@ -119,38 +127,18 @@ describe('get', () => {
       version: mockVersion,
       destinationFolderPath: mockDestinationFolderPath,
       force: true,
-      platform: 'linux',
-    })
-
-    expect(fs.copyFile).toHaveBeenCalledWith(
-      path.join('/mock/extracted', 'mockTool'),
-      path.join(mockDestinationFolderPath, 'mockTool'),
-      undefined
-    )
-  })
-
-  it('should log messages during the process', async () => {
-    await getTool({
-      tool: mockTool,
-      version: mockVersion,
-      destinationFolderPath: mockDestinationFolderPath,
       platform: 'win32',
     })
 
-    expect(log).toHaveBeenCalledWith(
-      'Copying',
-      path.join('/mock/extracted', 'mockTool.exe'),
-      'to',
-      path.join(mockDestinationFolderPath, 'mockTool.exe'),
-      'with force',
-      false
+    expect(fs.open).toHaveBeenCalledWith(
+      path.join(mockDestinationFolderPath, `${mockTool}.exe`),
+      'w'
     )
-    expect(log).toHaveBeenCalledWith('Copied')
   })
 
   it('should throw an error if tool already exists and force is false', async () => {
     jest
-      .mocked(fs.copyFile)
+      .mocked(fs.open)
       .mockRejectedValue(Object.assign(new Error(), { code: 'EEXIST' }))
 
     await expect(
@@ -160,19 +148,5 @@ describe('get', () => {
         destinationFolderPath: mockDestinationFolderPath,
       })
     ).rejects.toThrow('Tool already exists')
-  })
-
-  it('should throw an error if tool already exists and force is false', async () => {
-    jest
-      .mocked(fs.copyFile)
-      .mockRejectedValue(Object.assign(new Error('mock error')))
-
-    await expect(
-      getTool({
-        tool: mockTool,
-        version: mockVersion,
-        destinationFolderPath: mockDestinationFolderPath,
-      })
-    ).rejects.toThrow('mock error')
   })
 })

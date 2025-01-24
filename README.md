@@ -97,22 +97,22 @@ To set up the development environment, follow these steps:
    npm install
    ```
 
-3. Build the CLI
-
-   ```bash
-   npm run build
-   ```
-
-4. Run the CLI tool locally:
-
-   ```bash
-   node bin/cli.js get <tool> <version> [options]
-   ```
-
-5. To run tests:
+3. To run tests:
 
    ```bash
    npm test
+   ```
+
+4. Build the CLI
+
+   ```bash
+   npm run build:cli
+   ```
+
+5. Run the CLI tool locally:
+
+   ```bash
+   node bin/cli.js get <tool> <version> [options]
    ```
 
 6. To run the integration tests:
