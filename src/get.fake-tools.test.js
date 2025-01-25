@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
+import debug from 'debug'
 import tmp from 'tmp-promise'
 
 import { download } from './download.js'
@@ -9,6 +10,8 @@ import { createToolBasename, getArchiveType } from './tools.js'
 
 jest.mock('./download.js')
 jest.mock('./tools.js')
+
+debug.enable('gat:*')
 
 describe('get', () => {
   let tempDirPath
