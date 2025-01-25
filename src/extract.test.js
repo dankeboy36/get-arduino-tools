@@ -4,7 +4,6 @@ import { pipeline } from 'node:stream/promises'
 
 import { extract as extractTar } from 'tar-stream'
 import { Parse as ParseZip } from 'unzip-stream'
-// import  from 'unbzip2-stream'
 
 import { extract } from './extract.js'
 import { createLog } from './log.js'
@@ -34,16 +33,6 @@ describe('extract', () => {
     log = jest.fn()
     mockTarExtract = {
       on: jest.fn(),
-      // // Add a mock implementation for the 'on' method
-      // on: jest.fn((event, callback) => {
-      //   if (event === 'entry') {
-      //     callback(
-      //       { type: 'file', name: 'test.txt' },
-      //       Readable.from([Buffer.from('test')]),
-      //       jest.fn()
-      //     )
-      //   }
-      // }),
     }
     mockParseZip = jest.fn()
     mockBzip2 = jest.fn()

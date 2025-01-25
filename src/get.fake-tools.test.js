@@ -13,9 +13,6 @@ jest.mock('./tools.js')
 
 const tmpDir = promisify(tmp.dir)
 
-const itIfWin32 = process.platform === 'win32' ? it : it.skip
-const itIfNotWin32 = process.platform !== 'win32' ? it : it.skip
-
 describe('get', () => {
   let tempDirPath
 

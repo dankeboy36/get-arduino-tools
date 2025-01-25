@@ -44,7 +44,6 @@ export async function getTool({
       'w'
     : // creates the file on open fails when already exists
       'wx'
-  // The file is readable, writable, and executable by the owner, and readable and executable by others.
   const mode = 511 // decimal equivalent of '0o777'
 
   try {
