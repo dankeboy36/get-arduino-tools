@@ -4,7 +4,6 @@ import waitFor from 'wait-for-expect'
 import { parse } from './cli.js'
 import { getTool } from './get.js'
 
-jest.mock('@xhmikosr/decompress', () => jest.fn())
 jest.mock('debug', () => ({
   __esModule: true,
   ...jest.requireActual('debug'),

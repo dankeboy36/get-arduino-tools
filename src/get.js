@@ -7,7 +7,12 @@ import { download } from './download.js'
 import { extract } from './extract.js'
 import { createLog } from './log.js'
 import { rm } from './rm.js'
-import { getDownloadUrl, isArduinoTool, tools } from './tools.js'
+import {
+  createToolBasename,
+  getArchiveType,
+  getDownloadUrl,
+  tools,
+} from './tools.js'
 
 /**
  * @type {typeof import('./index.js').getTool}
@@ -30,37 +35,45 @@ export async function getTool({
   })
 
   /** @type {(()=>Promise<void>)|undefined} */
-  let toCleanup
+  let toCleanupOnError
 
-  const basename = `${tool}${platform === 'win32' ? '.exe' : ''}`
+  const basename = createToolBasename({ tool, platform })
   const destinationPath = path.join(destinationFolderPath, basename)
-  const flags = force ? 'w' : 'wx'
+  const flags = force
+    ? // opens for write truncates the files
+      'w'
+    : // creates the file on open fails when already exists
+      'wx'
+  // The file is readable, writable, and executable by the owner, and readable and executable by others.
+  const mode = 511 // decimal equivalent of '0o777'
 
   try {
-    const destinationFd = await fs.open(destinationPath, flags)
+    const destinationFd = await fs.open(destinationPath, flags, mode)
     if (!force) {
-      toCleanup = () => rm(destinationPath)
+      toCleanupOnError = () => rm(destinationPath)
     }
     const destination = destinationFd.createWriteStream()
 
     const buffer = await download({ url })
 
-    const strip = isArduinoTool(tool) ? undefined : 1 // clangd and clang-format are in a folder inside the archive
-    const extractResult = await extract({ buffer, strip })
+    const archiveType = getArchiveType({ tool, platform })
+    const extractResult = await extract({ buffer, archiveType })
 
     const sourcePath = path.join(extractResult.destinationPath, basename)
     const source = createReadStream(sourcePath)
 
     try {
       await pipeline(source, destination)
-      toCleanup = undefined
+      toCleanupOnError = undefined
     } finally {
       await extractResult.dispose()
     }
 
     return { toolPath: destinationPath }
   } catch (err) {
-    const errMessage = `Failed to download from ${url}`
+    const errMessage = `Failed to download from ${url}${
+      err.message ? ` ${err.message}` : ''
+    }`
     log(errMessage, err)
     if (err.code === 'EEXIST' && !force) {
       const eexistMessage = `Tool already exists: ${destinationPath}. Use --force to overwrite.`
@@ -69,7 +82,7 @@ export async function getTool({
     }
     throw new Error(errMessage)
   } finally {
-    await toCleanup?.()
+    await toCleanupOnError?.()
   }
 }
 

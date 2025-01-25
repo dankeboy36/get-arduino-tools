@@ -32,6 +32,20 @@ describe('execFile', () => {
     )
   })
 
+  it('should use an empty array as the default args', async () => {
+    mockedExecFileCallback.mockImplementation((_file, _args, callback) =>
+      callback(null, { stdout: '', stderr: '' })
+    )
+
+    await execFile('testFile')
+
+    expect(mockedExecFileCallback).toHaveBeenCalledWith(
+      'testFile',
+      [],
+      expect.any(Function)
+    )
+  })
+
   it('should re-throw the error', async () => {
     const mockError = new Error('an error')
     mockedExecFileCallback.mockImplementation((_file, _args, callback) =>

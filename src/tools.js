@@ -27,6 +27,14 @@ export function isArduinoTool(tool) {
 }
 
 /**
+ * @param {{tool:Tool, platform:NodeJS.Platform}} params
+ * @returns string
+ */
+export function createToolBasename({ tool, platform }) {
+  return `${tool}${platform === 'win32' ? '.exe' : ''}`
+}
+
+/**
  * @typedef {Object} GetDownloadUrlParams
  * @property {Tool} tool
  * @property {string} version
@@ -37,7 +45,7 @@ export function isArduinoTool(tool) {
  * @returns {string}
  */
 export function getDownloadUrl({ tool, version, platform, arch }) {
-  const log = createLog('tools')
+  const log = createLog('getDownloadUrl')
 
   log('Getting tool name for', tool, version, platform, arch)
   if (!tools.includes(tool)) {
@@ -83,14 +91,33 @@ function getToolSuffix({ platform, arch }) {
   throw new Error(`Unsupported platform: ${platform}, arch: ${arch}`)
 }
 
-function getArchiveExtension({ tool, platform }) {
+const archiveTypes = /** @type {const} */ (['zip', 'gzip', 'bzip2'])
+
+/** @typedef {typeof archiveTypes[number]} ArchiveType */
+
+/** @type {Record<ArchiveType, string>} */
+const extMapping = {
+  zip: '.zip',
+  gzip: '.tar.gz',
+  bzip2: '.tar.bz2',
+}
+
+/**
+ * @param {{tool:Tool, platform: NodeJS.Platform}} params
+ * @return {ArchiveType}
+ */
+export function getArchiveType({ tool, platform }) {
   if (!isArduinoTool(tool)) {
-    return '.tar.bz2'
+    return 'bzip2'
   }
   switch (platform) {
     case 'win32':
-      return '.zip'
+      return 'zip'
     default:
-      return '.tar.gz'
+      return 'gzip'
   }
+}
+
+function getArchiveExtension({ tool, platform }) {
+  return extMapping[getArchiveType({ tool, platform })]
 }
