@@ -54,7 +54,11 @@ describe('get', () => {
     jest
       .mocked(download)
       .mockResolvedValue(loadFakeToolByName('fake-tool-clang.tar.bz2'))
-    jest.mocked(createToolBasename).mockReturnValue('fake-tool')
+    jest
+      .mocked(createToolBasename)
+      .mockImplementation(() =>
+        process.platform === 'win32' ? 'fake-tool.bat' : 'fake-tool'
+      )
     jest.mocked(getArchiveType).mockReturnValue('bzip2')
 
     const { toolPath } = await getTool({
