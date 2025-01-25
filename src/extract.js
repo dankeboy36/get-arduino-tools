@@ -128,7 +128,8 @@ async function extractTar({
     }
     let basename = header.name
     if (strip > 0) {
-      const parts = basename.split(path.sep).slice(strip)
+      // the path is always POSIX inside the tar. For example, "folder/fake-tool"
+      const parts = basename.split(path.posix.sep).slice(strip)
       basename = parts.length ? parts.join(path.sep) : basename
     }
     const destinationFilePath = path.join(destinationPath, basename)
