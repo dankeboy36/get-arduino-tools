@@ -1,6 +1,6 @@
 {
   "name": "get-arduino-tools",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Get Arduino Tools (`gat`) is a CLI that helps you easily download various Arduino tools",
   "keywords": [
     "arduino",

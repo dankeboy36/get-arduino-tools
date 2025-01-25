@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.4...1.0.5) (2025-01-25)
+
+
+### Bug Fixes
+
+* fail fast before download if file already exists ([#9](https://github.com/dankeboy36/get-arduino-tools/issues/9)) ([dda18f6](https://github.com/dankeboy36/get-arduino-tools/commit/dda18f65d52a9984468c4ff38f78bc2624d98d50))
+
 ## [1.0.4](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.3...1.0.4) (2025-01-23)
 
 
