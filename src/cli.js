@@ -31,7 +31,7 @@ export function parse(args) {
     .action(async (tool, version, options) => {
       log('Getting tool', tool, version, JSON.stringify(options))
       if (options.verbose === true) {
-        enable('*')
+        enable('gat:*')
       }
       try {
         const { toolPath } = await getTool({

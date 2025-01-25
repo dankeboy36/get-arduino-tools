@@ -4,7 +4,6 @@ import waitFor from 'wait-for-expect'
 import { parse } from './cli.js'
 import { getTool } from './get.js'
 
-jest.mock('@xhmikosr/decompress', () => jest.fn())
 jest.mock('debug', () => ({
   __esModule: true,
   ...jest.requireActual('debug'),
@@ -52,7 +51,7 @@ describe('cli', () => {
 
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '--verbose'])
 
-    expect(enable).toHaveBeenCalledWith('*')
+    expect(enable).toHaveBeenCalledWith('gat:*')
   })
 
   it('should omit the error stacktrace from the CLI output', async () => {

@@ -6,4 +6,5 @@ export default {
   },
   testEnvironment: 'node',
   testTimeout: 60_000,
+  maxConcurrency: 1, // Do not stress-test Arduino's resources
 }
