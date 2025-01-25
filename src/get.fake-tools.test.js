@@ -54,11 +54,23 @@ describe('get', () => {
     jest
       .mocked(download)
       .mockResolvedValue(loadFakeToolByName('fake-tool-clang.tar.bz2'))
+    jest.mocked(createToolBasename).mockReturnValue('fake-tool')
+    jest.mocked(getArchiveType).mockReturnValue('bzip2')
+
+    const { toolPath } = await getTool({
+      tool: '',
+      version: '',
+      destinationFolderPath: tempDirPath,
+    })
+
+    expect(fs.access(toolPath, fs.constants.X_OK)).resolves.toBeUndefined()
+  })
+
+  it('should preserve the executable flag of the non-Arduino tool on Windows (bzip2)', async () => {
     jest
-      .mocked(createToolBasename)
-      .mockImplementation(() =>
-        process.platform === 'win32' ? 'fake-tool.bat' : 'fake-tool'
-      )
+      .mocked(download)
+      .mockResolvedValue(loadFakeToolByName('fake-tool-clang-win32.tar.bz2'))
+    jest.mocked(createToolBasename).mockReturnValue('fake-tool.bat')
     jest.mocked(getArchiveType).mockReturnValue('bzip2')
 
     const { toolPath } = await getTool({
