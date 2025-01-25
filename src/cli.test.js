@@ -51,7 +51,7 @@ describe('cli', () => {
 
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '--verbose'])
 
-    expect(enable).toHaveBeenCalledWith('*')
+    expect(enable).toHaveBeenCalledWith('gat:*')
   })
 
   it('should omit the error stacktrace from the CLI output', async () => {
