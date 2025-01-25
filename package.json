@@ -43,6 +43,7 @@
     "debug": "^4.4.0",
     "request-light": "^0.8.0",
     "tar-stream": "^3.1.7",
+    "tmp-promise": "^3.0.3",
     "unbzip2-stream": "^1.4.3",
     "unzip-stream": "^0.3.4"
   },
@@ -73,7 +74,6 @@
     "prettier-plugin-organize-imports": "^4.1.0",
     "prettier-plugin-packagejson": "^2.4.7",
     "semantic-release": "^21.0.7",
-    "tmp": "^0.2.3",
     "wait-for-expect": "^3.0.2"
   }
 }

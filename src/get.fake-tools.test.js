@@ -1,8 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { promisify } from 'node:util'
 
-import tmp from 'tmp'
+import tmp from 'tmp-promise'
 
 import { download } from './download.js'
 import { getTool } from './get.js'
@@ -11,13 +10,22 @@ import { createToolBasename, getArchiveType } from './tools.js'
 jest.mock('./download.js')
 jest.mock('./tools.js')
 
-const tmpDir = promisify(tmp.dir)
-
 describe('get', () => {
   let tempDirPath
+  let cleanup
 
   beforeEach(async () => {
-    tempDirPath = await tmpDir()
+    const tmpDirResult = await tmp.dir({
+      keep: false,
+      tries: 3,
+      unsafeCleanup: true,
+    })
+    tempDirPath = tmpDirResult.path
+    cleanup = tmpDirResult.cleanup
+  })
+
+  afterEach(async () => {
+    await cleanup()
   })
 
   it('should preserve the executable flag of the tool (gzip)', async () => {

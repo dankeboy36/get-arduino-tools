@@ -6,7 +6,6 @@ import { pipeline } from 'node:stream/promises'
 import { download } from './download.js'
 import { extract } from './extract.js'
 import { createLog } from './log.js'
-import { rm } from './rm.js'
 import {
   createToolBasename,
   getArchiveType,
@@ -49,7 +48,7 @@ export async function getTool({
   try {
     const destinationFd = await fs.open(destinationPath, flags, mode)
     if (!force) {
-      toCleanupOnError = () => rm(destinationPath)
+      toCleanupOnError = () => fs.unlink(destinationPath)
     }
     const destination = destinationFd.createWriteStream()
 
@@ -65,7 +64,7 @@ export async function getTool({
       await pipeline(source, destination)
       toCleanupOnError = undefined
     } finally {
-      await extractResult.dispose()
+      await extractResult.cleanup()
     }
 
     return { toolPath: destinationPath }

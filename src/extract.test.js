@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises'
-import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
 
 import { extract as extractTar } from 'tar-stream'
+import { dir } from 'tmp-promise'
 import { Parse as ParseZip } from 'unzip-stream'
 
 import { extract } from './extract.js'
@@ -11,6 +11,7 @@ import { createLog } from './log.js'
 jest.mock('node:fs/promises')
 jest.mock('node:stream/promises')
 
+jest.mock('tmp-promise')
 jest.mock('tar-stream')
 jest.mock('unzip-stream')
 jest.mock('unbzip2-stream')
@@ -24,10 +25,12 @@ jest.mock('./log.js', () => ({
 }))
 
 describe('extract', () => {
+  const mockTempDir = '/tmp/gat-12345'
   let log
   let mockTarExtract
   let mockParseZip
   let mockBzip2
+  let mockCleanup
 
   beforeEach(() => {
     log = jest.fn()
@@ -36,6 +39,11 @@ describe('extract', () => {
     }
     mockParseZip = jest.fn()
     mockBzip2 = jest.fn()
+    mockCleanup = jest.fn()
+
+    jest
+      .mocked(dir)
+      .mockResolvedValue({ path: mockTempDir, cleanup: mockCleanup })
 
     jest.mocked(createLog).mockReturnValue(log)
     jest.mocked(extractTar).mockReturnValue(mockTarExtract)
@@ -46,87 +54,57 @@ describe('extract', () => {
 
   it('should extract buffer to a temporary directory', async () => {
     const buffer = Buffer.from([1, 2, 3])
-    const mockTempDir = '/tmp/gat-12345'
-    jest.mocked(fs.mkdtemp).mockResolvedValue(mockTempDir)
 
     const result = await extract({ buffer, archiveType: 'zip' })
 
-    expect(fs.mkdtemp).toHaveBeenCalledWith(path.join('/tmp', 'gat-'))
+    expect(dir).toHaveBeenCalledWith({
+      prefix: 'gat-',
+      unsafeCleanup: true,
+      tries: 3,
+      keep: false,
+    })
     expect(ParseZip).toHaveBeenCalled()
     expect(result.destinationPath).toBe(mockTempDir)
   })
 
   it('should extract gzip tar buffer to a temporary directory', async () => {
     const buffer = Buffer.from([1, 2, 3])
-    const mockTempDir = '/tmp/gat-12345'
-    jest.mocked(fs.mkdtemp).mockResolvedValue(mockTempDir)
 
     const result = await extract({ buffer, archiveType: 'gzip' })
 
-    expect(fs.mkdtemp).toHaveBeenCalledWith(path.join('/tmp', 'gat-'))
     expect(extractTar).toHaveBeenCalled()
     expect(result.destinationPath).toBe(mockTempDir)
   })
 
   it('should extract bzip2 tar buffer to a temporary directory', async () => {
     const buffer = Buffer.from([1, 2, 3])
-    const mockTempDir = '/tmp/gat-12345'
-    jest.mocked(fs.mkdtemp).mockResolvedValue(mockTempDir)
 
     const result = await extract({ buffer, archiveType: 'bzip2' })
 
-    expect(fs.mkdtemp).toHaveBeenCalledWith(path.join('/tmp', 'gat-'))
     expect(extractTar).toHaveBeenCalled()
     expect(result.destinationPath).toBe(mockTempDir)
   })
 
   it('should throw an error for unsupported archive type', async () => {
     const buffer = Buffer.from([1, 2, 3])
-    const mockTempDir = '/tmp/gat-12345'
-    jest.mocked(fs.mkdtemp).mockResolvedValue(mockTempDir)
 
     await expect(
       extract({ buffer, archiveType: 'unsupported' })
     ).rejects.toThrow('Unsupported archive type: unsupported')
-
-    expect(fs.mkdtemp).toHaveBeenCalledWith(path.join('/tmp', 'gat-'))
   })
 
-  it('should log errors during disposal', async () => {
+  it('should cleanup the extracted files (on success)', async () => {
     const buffer = Buffer.from([1, 2, 3])
-    const mockTempDir = '/tmp/gat-12345'
-    const mockError = new Error('Deletion error')
-    jest.mocked(fs.mkdtemp).mockResolvedValue(mockTempDir)
-    jest.mocked(fs.rm).mockRejectedValue(mockError)
 
-    const result = await extract({ buffer, archiveType: 'zip' })
-    await result.dispose()
-
-    expect(fs.rm).toHaveBeenCalledWith(mockTempDir, {
-      recursive: true,
-      force: true,
-      maxRetries: 3,
-    })
-    expect(log).toHaveBeenCalledWith('Error deleting', mockTempDir, mockError)
-  })
-
-  it('should dispose the extracted files (on success)', async () => {
-    const buffer = Buffer.from([1, 2, 3])
-    const mockTempDir = '/tmp/gat-12345'
-    jest.mocked(fs.mkdtemp).mockResolvedValue(mockTempDir)
     jest.mocked(fs.rm).mockResolvedValue()
 
     const result = await extract({ buffer, archiveType: 'zip' })
-    await result.dispose()
+    await result.cleanup()
 
-    expect(fs.rm).toHaveBeenCalledWith(mockTempDir, {
-      recursive: true,
-      force: true,
-      maxRetries: 3,
-    })
+    expect(mockCleanup).toHaveBeenCalled()
   })
 
-  it('should dispose the extracted files (on error)', async () => {
+  it('should cleanup the extracted files (on error)', async () => {
     const buffer = Buffer.from([1, 2, 3])
     const error = new Error('decompress error')
     jest.mocked(ParseZip).mockImplementation(() => {
@@ -140,21 +118,14 @@ describe('extract', () => {
       expect.any(String),
       error
     )
-    expect(fs.rm).toHaveBeenCalledWith(expect.any(String), {
-      recursive: true,
-      force: true,
-      maxRetries: 3,
-    })
+    expect(mockCleanup).toHaveBeenCalled()
   })
 
   it('should extract zip buffer to a temporary directory and log extraction', async () => {
     const buffer = Buffer.from([1, 2, 3])
-    const mockTempDir = '/tmp/gat-12345'
-    jest.mocked(fs.mkdtemp).mockResolvedValue(mockTempDir)
 
     const result = await extract({ buffer, archiveType: 'zip' })
 
-    expect(fs.mkdtemp).toHaveBeenCalledWith(path.join('/tmp', 'gat-'))
     expect(ParseZip).toHaveBeenCalled()
     expect(result.destinationPath).toBe(mockTempDir)
     expect(log).toHaveBeenCalledWith('extracting to ', mockTempDir)
@@ -162,12 +133,9 @@ describe('extract', () => {
 
   it('should extract tar buffer with strip to a temporary directory and log extraction', async () => {
     const buffer = Buffer.from([1, 2, 3])
-    const mockTempDir = '/tmp/gat-12345'
-    jest.mocked(fs.mkdtemp).mockResolvedValue(mockTempDir)
 
     const result = await extract({ buffer, archiveType: 'bzip2' })
 
-    expect(fs.mkdtemp).toHaveBeenCalledWith(path.join('/tmp', 'gat-'))
     expect(extractTar).toHaveBeenCalled()
     expect(result.destinationPath).toBe(mockTempDir)
     expect(log).toHaveBeenCalledWith('extracting to ', mockTempDir)

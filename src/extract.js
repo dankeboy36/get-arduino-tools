@@ -1,17 +1,16 @@
 import { createWriteStream } from 'node:fs'
 import fs from 'node:fs/promises'
-import os from 'node:os'
 import path from 'node:path'
 import { Readable, Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import zlib from 'node:zlib'
 
 import tar from 'tar-stream'
+import tmp from 'tmp-promise'
 import bz2 from 'unbzip2-stream'
 import unzip from 'unzip-stream'
 
 import { createLog } from './log.js'
-import { rm } from './rm.js'
 
 /**
  * @typedef {Object} ExtractParams
@@ -20,7 +19,7 @@ import { rm } from './rm.js'
  *
  * @typedef {Object} ExtractResult
  * @property {string} destinationPath
- * @property {()=>Promise<void>} dispose
+ * @property {()=>Promise<void>} cleanup
  *
  * @param {ExtractParams} params
  * @returns {Promise<ExtractResult>}
@@ -28,23 +27,28 @@ import { rm } from './rm.js'
 export async function extract({ buffer, archiveType }) {
   const log = createLog('extract')
 
-  const destinationFolderPath = await fs.mkdtemp(path.join(os.tmpdir(), 'gat-')) // TODO: switch to `tmp-promise` with built-in cleanup
-  log('Extracting to', destinationFolderPath, 'with', archiveType)
+  const { path: destinationPath, cleanup } = await tmp.dir({
+    prefix: 'gat-',
+    keep: false,
+    tries: 3,
+    unsafeCleanup: true,
+  })
+  log('Extracting to', destinationPath, 'with', archiveType)
 
   const source = Readable.from(buffer)
 
   try {
     switch (archiveType) {
       case 'gzip': {
-        await extractGzipTar({ source, destinationFolderPath })
+        await extractGzipTar({ source, destinationPath })
         break
       }
       case 'bzip2': {
-        await extractBzip2Tar({ source, destinationFolderPath })
+        await extractBzip2Tar({ source, destinationPath })
         break
       }
       case 'zip': {
-        await extractZip({ source, destinationFolderPath })
+        await extractZip({ source, destinationPath })
         break
       }
       default: {
@@ -52,27 +56,27 @@ export async function extract({ buffer, archiveType }) {
       }
     }
   } catch (err) {
-    log('Error extracting to', destinationFolderPath, err)
+    log('Error extracting to', destinationPath, err)
     try {
-      await rm(destinationFolderPath)
+      await cleanup()
     } catch {}
     throw err
   }
-  log('Extracted to', destinationFolderPath)
+  log('Extracted to', destinationPath)
   return {
-    destinationPath: destinationFolderPath,
-    dispose: () => rm(destinationFolderPath),
+    destinationPath,
+    cleanup,
   }
 }
 
-async function extractZip({ source, destinationFolderPath }) {
+async function extractZip({ source, destinationPath }) {
   const log = createLog('extractZip')
 
   const transformEntry = new Transform({
     objectMode: true,
     transform: async (entry, _, next) => {
       const entryPath = entry.path
-      const destinationFilePath = path.join(destinationFolderPath, entryPath)
+      const destinationFilePath = path.join(destinationPath, entryPath)
       log('extracting', destinationFilePath)
       await pipeline(entry, createWriteStream(destinationFilePath))
       next()
@@ -81,25 +85,25 @@ async function extractZip({ source, destinationFolderPath }) {
 
   await pipeline(source, unzip.Parse(), transformEntry)
 
-  log('extracting to ', destinationFolderPath)
+  log('extracting to ', destinationPath)
 }
 
-async function extractGzipTar({ source, destinationFolderPath }) {
+async function extractGzipTar({ source, destinationPath }) {
   const log = createLog('extractGzipTar')
   return extractTar({
     source,
     decompress: zlib.createGunzip(),
-    destinationFolderPath,
+    destinationPath,
     log,
   })
 }
 
-async function extractBzip2Tar({ source, destinationFolderPath }) {
+async function extractBzip2Tar({ source, destinationPath }) {
   const log = createLog('extractBzip2Tar')
   return extractTar({
     source,
     decompress: bz2(),
-    destinationFolderPath,
+    destinationPath,
     log,
     strip: 1, // non-Arduino tools have a parent folder
   })
@@ -108,11 +112,11 @@ async function extractBzip2Tar({ source, destinationFolderPath }) {
 async function extractTar({
   source,
   decompress,
-  destinationFolderPath,
+  destinationPath,
   log,
   strip = 0,
 }) {
-  log('extracting to ', destinationFolderPath)
+  log('extracting to ', destinationPath)
 
   const extract = tar.extract()
 
@@ -127,7 +131,7 @@ async function extractTar({
       const parts = basename.split(path.sep).slice(strip)
       basename = parts.length ? parts.join(path.sep) : basename
     }
-    const destinationFilePath = path.join(destinationFolderPath, basename)
+    const destinationFilePath = path.join(destinationPath, basename)
     fs.mkdir(path.dirname(destinationFilePath), { recursive: true })
       .then(() => {
         log('extracting', destinationFilePath)
@@ -138,5 +142,5 @@ async function extractTar({
   })
 
   await pipeline(source, decompress, extract)
-  log('extracted to', destinationFolderPath)
+  log('extracted to', destinationPath)
 }

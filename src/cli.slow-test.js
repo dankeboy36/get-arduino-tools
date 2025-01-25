@@ -1,7 +1,6 @@
 import path from 'node:path'
-import { promisify } from 'node:util'
 
-import tmp from 'tmp'
+import tmp from 'tmp-promise'
 
 import { execFile } from './execFile.js'
 
@@ -11,8 +10,6 @@ import { execFile } from './execFile.js'
  * @property {string} version
  * @property {(toolPath:string,expected:string)=>Promise<void>} expectVersion
  */
-
-const tmpDir = promisify(tmp.dir)
 
 /** @type {CliTestParams['expectVersion']} */
 const arduinoToolExpectVersion = async (toolPath, expected) => {
@@ -60,7 +57,10 @@ describe('cli', () => {
   ]
   params.map(({ tool, version, expectVersion }) =>
     it(`should get the ${tool}`, async () => {
-      const tempDirPath = await tmpDir()
+      const { path: tempDirPath } = await tmp.dir({
+        keep: false,
+        unsafeCleanup: true,
+      })
 
       const toolPath = await execFile(process.argv[0], [
         path.join(__dirname, '../bin/cli.js'),

@@ -26,7 +26,7 @@ describe('get', () => {
   const mockBuffer = new Uint8Array([1, 2, 3])
   const mockExtractResult = {
     destinationPath: '/mock/extracted',
-    dispose: jest.fn(),
+    cleanup: jest.fn(),
   }
   const mockedFd = {
     createWriteStream: jest.fn(),
@@ -78,7 +78,7 @@ describe('get', () => {
       buffer: mockBuffer,
       strip: undefined,
     })
-    expect(mockExtractResult.dispose).toHaveBeenCalled()
+    expect(mockExtractResult.cleanup).toHaveBeenCalled()
     expect(result.toolPath).toBe(
       path.join(mockDestinationFolderPath, 'arduino-cli')
     )
