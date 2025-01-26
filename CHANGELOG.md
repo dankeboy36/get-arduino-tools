@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.5...1.0.6) (2025-01-26)
+
+
+### Bug Fixes
+
+* rethrow original error from `getTool` ([#10](https://github.com/dankeboy36/get-arduino-tools/issues/10)) ([1c2d35a](https://github.com/dankeboy36/get-arduino-tools/commit/1c2d35a438e0cffe3b6e5cec5b94ad202d747fbb))
+
 ## [1.0.5](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.4...1.0.5) (2025-01-25)
 
 
