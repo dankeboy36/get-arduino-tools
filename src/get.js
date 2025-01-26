@@ -1,22 +1,22 @@
-import { createReadStream } from 'node:fs'
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { pipeline } from 'node:stream/promises'
+const { createReadStream } = require('node:fs')
+const fs = require('node:fs/promises')
+const path = require('node:path')
+const { pipeline } = require('node:stream/promises')
 
-import { download } from './download.js'
-import { extract } from './extract.js'
-import { createLog } from './log.js'
-import {
+const { download } = require('./download')
+const { extract } = require('./extract')
+const { createLog } = require('./log')
+const {
   createToolBasename,
   getArchiveType,
   getDownloadUrl,
   tools,
-} from './tools.js'
+} = require('./tools')
 
 /**
- * @type {typeof import('./index.js').getTool}
+ * @type {typeof import('./index').getTool}
  */
-export async function getTool({
+async function getTool({
   tool,
   version,
   destinationFolderPath,
@@ -82,4 +82,7 @@ export async function getTool({
   }
 }
 
-export { tools }
+module.exports = {
+  tools,
+  getTool,
+}

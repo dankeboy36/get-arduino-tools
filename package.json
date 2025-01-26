@@ -16,8 +16,8 @@
   },
   "license": "MIT",
   "author": "dankeboy36",
-  "type": "module",
-  "main": "dist/index.cjs",
+  "type": "commonjs",
+  "main": "dist/index.js",
   "types": "src/index.d.ts",
   "bin": {
     "gat": "bin/cli.js"
@@ -29,8 +29,8 @@
   ],
   "scripts": {
     "build": "npm run build:lib && npm run build:cli",
-    "build:cli": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --minify --outfile=dist/cli.cjs",
-    "build:lib": "esbuild src/index.js --bundle --platform=node --target=node22 --format=cjs --minify --sourcemap --outfile=dist/index.cjs",
+    "build:cli": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --minify --outfile=dist/cli.js",
+    "build:lib": "esbuild src/index.js --bundle --platform=node --target=node22 --format=cjs --minify --sourcemap --outfile=dist/index.js",
     "format": "prettier --write .",
     "release": "semantic-release",
     "test": "jest --coverage --verbose",

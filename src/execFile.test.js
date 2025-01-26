@@ -1,6 +1,6 @@
-import { execFile as execFileCallback } from 'node:child_process'
+const { execFile: execFileCallback } = require('node:child_process')
 
-import { execFile } from './execFile'
+const { execFile } = require('./execFile')
 
 const mockedExecFileCallback = jest.mocked(execFileCallback)
 

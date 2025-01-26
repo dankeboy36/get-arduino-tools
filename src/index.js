@@ -1,1 +1,5 @@
-export { getTool } from './get.js'
+const { getTool } = require('./get')
+
+module.exports = {
+  getTool,
+}

@@ -1,5 +1,5 @@
 /** @type {import('semantic-release').Options} */
-export default {
+module.exports = {
   tagFormat: '${version}',
   branches: ['main'],
   plugins: [

@@ -1,12 +1,12 @@
-import fs from 'node:fs/promises'
-import { pipeline } from 'node:stream/promises'
+const fs = require('node:fs/promises')
+const { pipeline } = require('node:stream/promises')
 
-import { extract as extractTar } from 'tar-stream'
-import { dir } from 'tmp-promise'
-import { Parse as ParseZip } from 'unzip-stream'
+const { extract: extractTar } = require('tar-stream')
+const { dir } = require('tmp-promise')
+const { Parse: ParseZip } = require('unzip-stream')
 
-import { extract } from './extract.js'
-import { createLog } from './log.js'
+const { extract } = require('./extract')
+const { createLog } = require('./log')
 
 jest.mock('node:fs/promises')
 jest.mock('node:stream/promises')

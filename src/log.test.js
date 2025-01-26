@@ -1,9 +1,9 @@
-import debug from 'debug'
+const { debug } = require('debug')
 
-import { createLog } from './log.js'
+const { createLog } = require('./log')
 
 const mockLog = jest.fn()
-jest.mock('debug', () => jest.fn(() => mockLog))
+jest.mock('debug', () => ({ debug: jest.fn(() => mockLog) }))
 
 describe('log', () => {
   beforeEach(() => {

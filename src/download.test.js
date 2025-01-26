@@ -1,6 +1,6 @@
-import { xhr } from 'request-light'
+const { xhr } = require('request-light')
 
-import { download } from './download.js'
+const { download } = require('./download')
 
 const mockedXhr = jest.mocked(xhr)
 

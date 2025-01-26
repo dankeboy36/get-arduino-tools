@@ -1,4 +1,8 @@
-import { createToolBasename, getArchiveType, getDownloadUrl } from './tools.js'
+const {
+  createToolBasename,
+  getArchiveType,
+  getDownloadUrl,
+} = require('./tools')
 
 describe('tools', () => {
   describe('createToolBasename', () => {

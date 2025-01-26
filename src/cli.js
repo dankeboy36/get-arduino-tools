@@ -1,13 +1,13 @@
-import { Command } from 'commander'
-import { enable } from 'debug'
+const { Command } = require('commander')
+const { enable } = require('debug')
 
-import { getTool, tools } from './get.js'
-import { createLog } from './log.js'
+const { getTool, tools } = require('./get')
+const { createLog } = require('./log')
 
 /**
  * @param {readonly string[]} args
  */
-export function parse(args) {
+function parse(args) {
   const log = createLog('cli')
   log('parse', args)
 
@@ -52,4 +52,8 @@ export function parse(args) {
     })
 
   program.parse(args)
+}
+
+module.exports = {
+  parse,
 }

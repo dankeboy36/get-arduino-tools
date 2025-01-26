@@ -1,8 +1,8 @@
-import path from 'node:path'
+const path = require('node:path')
 
-import tmp from 'tmp-promise'
+const tmp = require('tmp-promise')
 
-import { execFile } from './execFile.js'
+const { execFile } = require('./execFile')
 
 /**
  * @typedef {Object} CliTestParams
@@ -63,7 +63,7 @@ describe('cli', () => {
       })
 
       const toolPath = await execFile(process.argv[0], [
-        path.join(__dirname, '../bin/cli.js'),
+        path.join(__dirname, '../bin/cli'),
         'get',
         tool,
         version,
