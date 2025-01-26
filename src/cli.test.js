@@ -62,6 +62,25 @@ describe('cli', () => {
     await waitFor(() => expect(mockLog).toHaveBeenCalledWith('my error'))
   })
 
+  it('should prompt --force when errors with EEXIST', async () => {
+    jest
+      .mocked(getTool)
+      .mockRejectedValueOnce(
+        Object.assign(new Error('my error'), { code: 'EEXIST' })
+      )
+
+    parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1'])
+
+    await waitFor(() => expect(mockLog).toHaveBeenNthCalledWith(1, 'my error'))
+
+    await waitFor(() =>
+      expect(mockLog).toHaveBeenNthCalledWith(
+        2,
+        'Use --force to overwrite existing files'
+      )
+    )
+  })
+
   it('should print the reason as is when has no message', async () => {
     jest.mocked(getTool).mockRejectedValueOnce('just string')
 

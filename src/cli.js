@@ -29,10 +29,11 @@ export function parse(args) {
     .option('--verbose', 'Enables the verbose output', false)
     .description('Get an Arduino tool')
     .action(async (tool, version, options) => {
-      log('Getting tool', tool, version, JSON.stringify(options))
       if (options.verbose === true) {
         enable('gat:*')
       }
+      log('Getting tool', tool, version, JSON.stringify(options))
+
       try {
         const { toolPath } = await getTool({
           tool,
@@ -44,6 +45,9 @@ export function parse(args) {
       } catch (err) {
         log('Failed to download tool', err)
         console.log(err?.message || err)
+        if (err.code === 'EEXIST' && options.force !== true) {
+          console.log('Use --force to overwrite existing files')
+        }
       }
     })
 

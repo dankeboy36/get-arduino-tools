@@ -85,7 +85,8 @@ describe('get', () => {
   })
 
   it('should throw an error if download fails', async () => {
-    jest.mocked(download).mockRejectedValue(new Error('download error'))
+    const err = new Error('download error')
+    jest.mocked(download).mockRejectedValue(err)
 
     await expect(
       getTool({
@@ -93,9 +94,7 @@ describe('get', () => {
         version: mockVersion,
         destinationFolderPath: mockDestinationFolderPath,
       })
-    ).rejects.toThrow(
-      'Failed to download from https://downloads.arduino.cc/mock'
-    )
+    ).rejects.toThrow(err)
   })
 
   it('should overwrite the tool if force is true', async () => {
@@ -114,9 +113,8 @@ describe('get', () => {
   })
 
   it('should throw an error if tool already exists and force is false', async () => {
-    jest
-      .mocked(fs.open)
-      .mockRejectedValue(Object.assign(new Error(), { code: 'EEXIST' }))
+    const err = Object.assign(new Error(), { code: 'EEXIST' })
+    jest.mocked(fs.open).mockRejectedValue(err)
 
     await expect(
       getTool({
@@ -124,6 +122,6 @@ describe('get', () => {
         version: mockVersion,
         destinationFolderPath: mockDestinationFolderPath,
       })
-    ).rejects.toThrow('Tool already exists')
+    ).rejects.toThrow(err)
   })
 })
