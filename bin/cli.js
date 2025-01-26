@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-import { parse } from '../dist/cli.cjs'
+const { parse } = require('../dist/cli')
 
 parse(process.argv)

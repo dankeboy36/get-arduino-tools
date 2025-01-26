@@ -1,14 +1,14 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
+const fs = require('node:fs/promises')
+const path = require('node:path')
 
-import tmp from 'tmp-promise'
+const tmp = require('tmp-promise')
 
-import { download } from './download.js'
-import { getTool } from './get.js'
-import { createToolBasename, getArchiveType } from './tools.js'
+const { download } = require('./download')
+const { getTool } = require('./get')
+const { createToolBasename, getArchiveType } = require('./tools')
 
-jest.mock('./download.js')
-jest.mock('./tools.js')
+jest.mock('./download')
+jest.mock('./tools')
 
 describe('get', () => {
   let tempDirPath

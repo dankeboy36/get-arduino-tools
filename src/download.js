@@ -1,6 +1,6 @@
-import xhr from 'request-light'
+const xhr = require('request-light')
 
-import { createLog } from './log.js'
+const { createLog } = require('./log')
 
 /**
  * @typedef {Object} DownloadParams
@@ -9,7 +9,7 @@ import { createLog } from './log.js'
  * @param {DownloadParams} params
  * @returns {Promise<Uint8Array<ArrayBufferLike>>}
  */
-export async function download({ url }) {
+async function download({ url }) {
   const log = createLog('download')
 
   log('Downloading', url)
@@ -29,4 +29,8 @@ export async function download({ url }) {
         err.toString()
     )
   }
+}
+
+module.exports = {
+  download,
 }

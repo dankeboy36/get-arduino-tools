@@ -1,5 +1,5 @@
 /** @type {import('jest').Config} */
-export default {
+module.exports = {
   testMatch: ['**/*.slow-test.js'],
   transform: {
     '^.+\\.js$': 'babel-jest',

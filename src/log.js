@@ -1,9 +1,13 @@
-import debug from 'debug'
+const { debug } = require('debug')
 
 /**
  * @param {string} namespace
  * @returns {(formatter: any, ...args: any[])=>void}
  */
-export function createLog(namespace) {
+function createLog(namespace) {
   return debug(`gat:${namespace}`)
+}
+
+module.exports = {
+  createLog,
 }

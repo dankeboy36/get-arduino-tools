@@ -1,4 +1,4 @@
-import slowJestConfig from './jest.config.slow.js'
+const slowJestConfig = require('./jest.config.slow')
 
 const collectCoverageFrom = ['src/*.js']
 slowJestConfig.testMatch?.forEach((glob) =>
@@ -6,7 +6,7 @@ slowJestConfig.testMatch?.forEach((glob) =>
 )
 
 /** @type {import('jest').Config} */
-export default {
+module.exports = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   collectCoverageFrom,

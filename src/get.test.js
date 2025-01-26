@@ -1,20 +1,20 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { pipeline } from 'node:stream/promises'
+const fs = require('node:fs/promises')
+const path = require('node:path')
+const { pipeline } = require('node:stream/promises')
 
-import { download } from './download.js'
-import { extract } from './extract.js'
-import { getTool } from './get.js'
-import { createLog } from './log.js'
-import { createToolBasename, getDownloadUrl, isArduinoTool } from './tools.js'
+const { download } = require('./download')
+const { extract } = require('./extract')
+const { getTool } = require('./get')
+const { createLog } = require('./log')
+const { createToolBasename, getDownloadUrl, isArduinoTool } = require('./tools')
 
 jest.mock('node:fs')
 jest.mock('node:fs/promises')
 jest.mock('node:stream/promises')
-jest.mock('./download.js')
-jest.mock('./extract.js')
-jest.mock('./log.js')
-jest.mock('./tools.js')
+jest.mock('./download')
+jest.mock('./extract')
+jest.mock('./log')
+jest.mock('./tools')
 
 describe('get', () => {
   const log = jest.fn()
@@ -49,11 +49,11 @@ describe('get', () => {
 
   it('should open a file, download, extract, and pipe the tool to the file', async () => {
     jest.mocked(getDownloadUrl).mockImplementation((params) => {
-      const toolsModule = jest.requireActual('./tools.js')
+      const toolsModule = jest.requireActual('./tools')
       return toolsModule.getDownloadUrl(params)
     })
     jest.mocked(isArduinoTool).mockImplementation((tool) => {
-      const toolsModule = jest.requireActual('./tools.js')
+      const toolsModule = jest.requireActual('./tools')
       return toolsModule.isArduinoTool(tool)
     })
     jest.mocked(createToolBasename).mockReturnValue('arduino-cli')

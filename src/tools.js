@@ -1,10 +1,10 @@
-import { posix } from 'node:path'
+const { posix } = require('node:path')
 
-import { createLog } from './log.js'
+const { createLog } = require('./log')
 
 /**
- * @typedef {import('./index.js').Tool} Tool
- * @typedef {import('./index.js').ArduinoTool} ArduinoTool
+ * @typedef {import('./index').Tool} Tool
+ * @typedef {import('./index').ArduinoTool} ArduinoTool
  */
 
 const arduinoTools = [
@@ -13,16 +13,13 @@ const arduinoTools = [
   'arduino-fwuploader',
 ]
 const clangTools = ['clangd', 'clang-format']
-export const tools = /** @type {readonly Tool[]} */ ([
-  ...arduinoTools,
-  ...clangTools,
-])
+const tools = /** @type {readonly Tool[]} */ ([...arduinoTools, ...clangTools])
 
 /**
  * @param {Tool} tool
  * @returns {tool is ArduinoTool}
  */
-export function isArduinoTool(tool) {
+function isArduinoTool(tool) {
   return arduinoTools.includes(tool)
 }
 
@@ -30,7 +27,7 @@ export function isArduinoTool(tool) {
  * @param {{tool:Tool, platform:NodeJS.Platform}} params
  * @returns string
  */
-export function createToolBasename({ tool, platform }) {
+function createToolBasename({ tool, platform }) {
   return `${tool}${platform === 'win32' ? '.exe' : ''}`
 }
 
@@ -44,7 +41,7 @@ export function createToolBasename({ tool, platform }) {
  * @param {GetDownloadUrlParams} params
  * @returns {string}
  */
-export function getDownloadUrl({ tool, version, platform, arch }) {
+function getDownloadUrl({ tool, version, platform, arch }) {
   const log = createLog('getDownloadUrl')
 
   log('Getting tool name for', tool, version, platform, arch)
@@ -106,7 +103,7 @@ const extMapping = {
  * @param {{tool:Tool, platform: NodeJS.Platform}} params
  * @return {ArchiveType}
  */
-export function getArchiveType({ tool, platform }) {
+function getArchiveType({ tool, platform }) {
   if (!isArduinoTool(tool)) {
     return 'bzip2'
   }
@@ -120,4 +117,12 @@ export function getArchiveType({ tool, platform }) {
 
 function getArchiveExtension({ tool, platform }) {
   return extMapping[getArchiveType({ tool, platform })]
+}
+
+module.exports = {
+  tools,
+  isArduinoTool,
+  createToolBasename,
+  getDownloadUrl,
+  getArchiveType,
 }

@@ -1,21 +1,21 @@
-import { createWriteStream } from 'node:fs'
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { Readable, Transform } from 'node:stream'
-import { pipeline } from 'node:stream/promises'
-import zlib from 'node:zlib'
+const { createWriteStream } = require('node:fs')
+const fs = require('node:fs/promises')
+const path = require('node:path')
+const { Readable, Transform } = require('node:stream')
+const { pipeline } = require('node:stream/promises')
+const zlib = require('node:zlib')
 
-import tar from 'tar-stream'
-import tmp from 'tmp-promise'
-import bz2 from 'unbzip2-stream'
-import unzip from 'unzip-stream'
+const tar = require('tar-stream')
+const tmp = require('tmp-promise')
+const bz2 = require('unbzip2-stream')
+const unzip = require('unzip-stream')
 
-import { createLog } from './log.js'
+const { createLog } = require('./log')
 
 /**
  * @typedef {Object} ExtractParams
  * @property {Uint8Array<ArrayBufferLike>} buffer
- * @property {import('./tools.js').ArchiveType} archiveType
+ * @property {import('./tools').ArchiveType} archiveType
  *
  * @typedef {Object} ExtractResult
  * @property {string} destinationPath
@@ -24,7 +24,7 @@ import { createLog } from './log.js'
  * @param {ExtractParams} params
  * @returns {Promise<ExtractResult>}
  */
-export async function extract({ buffer, archiveType }) {
+async function extract({ buffer, archiveType }) {
   const log = createLog('extract')
 
   const { path: destinationPath, cleanup } = await tmp.dir({
@@ -144,4 +144,8 @@ async function extractTar({
 
   await pipeline(source, decompress, extract)
   log('extracted to', destinationPath)
+}
+
+module.exports = {
+  extract,
 }

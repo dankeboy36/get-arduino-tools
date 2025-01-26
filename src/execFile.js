@@ -1,7 +1,7 @@
-import cp from 'node:child_process'
-import { promisify } from 'node:util'
+const cp = require('node:child_process')
+const { promisify } = require('node:util')
 
-import { createLog } from './log.js'
+const { createLog } = require('./log')
 
 const execFileAsync = promisify(cp.execFile)
 
@@ -10,7 +10,7 @@ const execFileAsync = promisify(cp.execFile)
  * @param {readonly string[]} [args=[]]
  * @param {boolean} [canError=false]
  */
-export async function execFile(file, args = [], canError = false) {
+async function execFile(file, args = [], canError = false) {
   const log = createLog('execFile')
 
   log(`execFile: ${file} ${args.join(' ')}`)
@@ -23,4 +23,8 @@ export async function execFile(file, args = [], canError = false) {
     }
     throw err
   }
+}
+
+module.exports = {
+  execFile,
 }

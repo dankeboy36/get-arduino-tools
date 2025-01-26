@@ -1,15 +1,15 @@
-import { enable } from 'debug'
-import waitFor from 'wait-for-expect'
+const { enable } = require('debug')
+const waitFor = require('wait-for-expect')
 
-import { parse } from './cli.js'
-import { getTool } from './get.js'
+const { parse } = require('./cli')
+const { getTool } = require('./get')
 
 jest.mock('debug', () => ({
   __esModule: true,
   ...jest.requireActual('debug'),
   enable: jest.fn(),
 }))
-jest.mock('./get.js')
+jest.mock('./get')
 
 describe('cli', () => {
   let mockLog
