@@ -37,7 +37,9 @@ export async function getTool({
   let toCleanupOnError
 
   const basename = createToolBasename({ tool, platform })
+  log('Basename for', tool, platform, 'is', basename)
   const destinationPath = path.join(destinationFolderPath, basename)
+  log('Destination path', destinationPath)
   const flags = force
     ? // opens for write truncates the files
       'w'
@@ -46,6 +48,7 @@ export async function getTool({
   const mode = 511 // decimal equivalent of '0o777'
 
   try {
+    log('Opening destination file', destinationPath, flags, mode)
     const destinationFd = await fs.open(destinationPath, flags, mode)
     if (!force) {
       toCleanupOnError = () => fs.unlink(destinationPath)
@@ -55,13 +58,16 @@ export async function getTool({
     const buffer = await download({ url })
 
     const archiveType = getArchiveType({ tool, platform })
+    log('Got archive type', archiveType, 'from', tool, platform)
     const extractResult = await extract({ buffer, archiveType })
 
     const sourcePath = path.join(extractResult.destinationPath, basename)
     const source = createReadStream(sourcePath)
 
     try {
+      log('Piping from', sourcePath, 'to', destinationPath)
       await pipeline(source, destination)
+      log('Piping completed')
       toCleanupOnError = undefined
     } finally {
       await extractResult.cleanup()
@@ -69,16 +75,8 @@ export async function getTool({
 
     return { toolPath: destinationPath }
   } catch (err) {
-    const errMessage = `Failed to download from ${url}${
-      err.message ? ` ${err.message}` : ''
-    }`
-    log(errMessage, err)
-    if (err.code === 'EEXIST' && !force) {
-      const eexistMessage = `Tool already exists: ${destinationPath}. Use --force to overwrite.`
-      log(eexistMessage)
-      throw new Error(eexistMessage)
-    }
-    throw new Error(errMessage)
+    log('Failed to download from', url, err)
+    throw err
   } finally {
     await toCleanupOnError?.()
   }
