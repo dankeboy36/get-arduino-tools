@@ -14,7 +14,7 @@ const { createLog } = require('./log')
 
 /**
  * @typedef {Object} ExtractParams
- * @property {Uint8Array<ArrayBufferLike>} buffer
+ * @property {Readable} source
  * @property {import('./tools').ArchiveType} archiveType
  *
  * @typedef {Object} ExtractResult
@@ -24,7 +24,7 @@ const { createLog } = require('./log')
  * @param {ExtractParams} params
  * @returns {Promise<ExtractResult>}
  */
-async function extract({ buffer, archiveType }) {
+async function extract({ source, archiveType }) {
   const log = createLog('extract')
 
   const { path: destinationPath, cleanup } = await tmp.dir({
@@ -34,8 +34,6 @@ async function extract({ buffer, archiveType }) {
     unsafeCleanup: true,
   })
   log('Extracting to', destinationPath, 'with', archiveType)
-
-  const source = Readable.from(buffer)
 
   try {
     switch (archiveType) {

@@ -1,5 +1,6 @@
 const { Command } = require('commander')
 const { enable } = require('debug')
+const ProgressBar = require('progress')
 
 const { getTool, tools } = require('./get')
 const { createLog } = require('./log')
@@ -27,6 +28,7 @@ function parse(args) {
     .option('-a, --arch <arch>', 'Architecture', process.arch)
     .option('-f, --force', 'Force download to overwrite existing files', false)
     .option('--verbose', 'Enables the verbose output', false)
+    .option('--silent', 'Disables the progress bar', false)
     .description('Get an Arduino tool')
     .action(async (tool, version, options) => {
       if (options.verbose === true) {
@@ -34,10 +36,25 @@ function parse(args) {
       }
       log('Getting tool', tool, version, JSON.stringify(options))
 
+      /** @type {Parameters<typeof getTool>[0]['onProgress']} */
+      let onProgress = () => {}
+      if (options.silent !== true) {
+        const bar = new ProgressBar(
+          `Downloading ${tool} [:bar] :rate/bps :percent :etas`,
+          {
+            complete: '=',
+            incomplete: ' ',
+            total: 100,
+          }
+        )
+        onProgress = () => bar.tick(1)
+      }
+
       try {
         const { toolPath } = await getTool({
           tool,
           version,
+          onProgress,
           ...options,
         })
         log('Tool downloaded to', toolPath)

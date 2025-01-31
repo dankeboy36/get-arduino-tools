@@ -1,5 +1,6 @@
 const fs = require('node:fs/promises')
 const path = require('node:path')
+const { Readable } = require('node:stream')
 
 const tmp = require('tmp-promise')
 
@@ -39,6 +40,11 @@ describe('get', () => {
       tool: '',
       version: '',
       destinationFolderPath: tempDirPath,
+      onProgress: (params) => {
+        if (params.current) {
+          console.log(params.current)
+        }
+      },
     })
 
     expect(fs.access(toolPath, fs.constants.X_OK)).resolves.toBeUndefined()
@@ -94,6 +100,10 @@ describe('get', () => {
     const originalModule = jest.requireActual('node:fs/promises')
     const toolPath = path.join(__dirname, '../fake-tools', fakeToolName)
     const buffer = await originalModule.readFile(toolPath)
-    return buffer
+    const readable = Readable.from(buffer)
+    return {
+      body: readable,
+      length: buffer.length,
+    }
   }
 })

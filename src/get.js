@@ -1,17 +1,23 @@
 const { createReadStream } = require('node:fs')
 const fs = require('node:fs/promises')
 const path = require('node:path')
+const { Transform } = require('node:stream')
 const { pipeline } = require('node:stream/promises')
 
 const { download } = require('./download')
 const { extract } = require('./extract')
 const { createLog } = require('./log')
+const ProgressCounter = require('./progress')
 const {
   createToolBasename,
   getArchiveType,
   getDownloadUrl,
   tools,
 } = require('./tools')
+
+/**
+ * Progress: 5% for get the response, 45% for download, 45% for extract, 5% for pipe
+ */
 
 /**
  * @type {typeof import('./index').getTool}
@@ -23,6 +29,7 @@ async function getTool({
   platform = process.platform,
   arch = process.arch,
   force = false,
+  onProgress = () => {},
 }) {
   const log = createLog('getTool')
 
@@ -55,11 +62,24 @@ async function getTool({
     }
     const destination = destinationFd.createWriteStream()
 
-    const buffer = await download({ url })
+    const downloadResult = await download({ url })
+
+    const progressCounter = new ProgressCounter(downloadResult.length)
+    progressCounter.on('progress', onProgress)
+
+    const progressTransform = new Transform({
+      transform(chunk, _, callback) {
+        progressCounter.work(chunk.length)
+        callback(null, chunk)
+      },
+    })
 
     const archiveType = getArchiveType({ tool, platform })
     log('Got archive type', archiveType, 'from', tool, platform)
-    const extractResult = await extract({ buffer, archiveType })
+    const extractResult = await extract({
+      source: downloadResult.body.pipe(progressTransform),
+      archiveType,
+    })
 
     const sourcePath = path.join(extractResult.destinationPath, basename)
     const source = createReadStream(sourcePath)
