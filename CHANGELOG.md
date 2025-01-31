@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/dankeboy36/get-arduino-tools/compare/1.1.0...1.1.1) (2025-01-31)
+
+
+### Bug Fixes
+
+* **doc:** add missing `--silent` option ([#13](https://github.com/dankeboy36/get-arduino-tools/issues/13)) ([87a5a99](https://github.com/dankeboy36/get-arduino-tools/commit/87a5a9983813ff360efc08f34e1d62ae5c9c67ae))
+
 # [1.1.0](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.7...1.1.0) (2025-01-31)
 
 
