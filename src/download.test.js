@@ -26,7 +26,14 @@ describe('download', () => {
 
   it('should download the tool successfully', async () => {
     const data = '1, 2, 3, 4, 5'
-    mockXhr.mockResolvedValue({ body: ReadableStream.from(data), status: 200 })
+    const body = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(data))
+        controller.close()
+      },
+    })
+
+    mockXhr.mockResolvedValue({ body, status: 200 })
 
     const result = await download({ url })
 
@@ -90,7 +97,7 @@ describe('download', () => {
   describe('length', () => {
     it('should get the content length from the header (single)', async () => {
       mockXhr.mockResolvedValue({
-        body: ReadableStream.from(''),
+        body: Readable.from(''),
         status: 200,
         headers: { 'content-length': '36' },
       })
@@ -101,7 +108,7 @@ describe('download', () => {
 
     it('should get the content length from the header (array)', async () => {
       mockXhr.mockResolvedValue({
-        body: ReadableStream.from(''),
+        body: Readable.from(''),
         status: 200,
         headers: { 'content-length': ['36', '37'] },
       })
@@ -112,7 +119,7 @@ describe('download', () => {
 
     it('should get the content length from the header (capital case)', async () => {
       mockXhr.mockResolvedValue({
-        body: ReadableStream.from(''),
+        body: Readable.from(''),
         status: 200,
         headers: { 'Content-Length': '36' },
       })
@@ -123,7 +130,7 @@ describe('download', () => {
 
     it('should fall back to 0 content length (NaN)', async () => {
       mockXhr.mockResolvedValue({
-        body: ReadableStream.from(''),
+        body: Readable.from(''),
         status: 200,
         headers: { 'content-length': 'alma' },
       })
@@ -134,7 +141,7 @@ describe('download', () => {
 
     it('should fall back to 0 content length (empty)', async () => {
       mockXhr.mockResolvedValue({
-        body: ReadableStream.from(''),
+        body: Readable.from(''),
         status: 200,
         headers: { 'content-length': '' },
       })
@@ -145,7 +152,7 @@ describe('download', () => {
 
     it('should fall back to 0 content length (empty)', async () => {
       mockXhr.mockResolvedValue({
-        body: ReadableStream.from(''),
+        body: Readable.from(''),
         status: 200,
         headers: { 'other-header': '' },
       })
