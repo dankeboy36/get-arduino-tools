@@ -41,7 +41,8 @@
   "dependencies": {
     "commander": "^12.1.0",
     "debug": "^4.4.0",
-    "request-light": "^0.8.0",
+    "progress": "^2.0.3",
+    "request-light-stream": "^1.0.2",
     "tar-stream": "^3.1.7",
     "tmp-promise": "^3.0.3",
     "unbzip2-stream": "^1.4.3",
@@ -51,6 +52,7 @@
     "@babel/core": "^7.26.0",
     "@babel/eslint-parser": "^7.26.5",
     "@babel/preset-env": "^7.26.0",
+    "@sadams/wait-for-expect": "^1.1.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^10.0.1",
     "@semantic-release/exec": "^6.0.3",
@@ -59,6 +61,8 @@
     "@semantic-release/npm": "^10.0.4",
     "@semantic-release/release-notes-generator": "^11.0.3",
     "@types/jest": "^29.5.14",
+    "@types/node": "18.x",
+    "@types/progress": "^2.0.7",
     "@types/tar-stream": "^3.1.3",
     "@types/unbzip2-stream": "^1.4.3",
     "@types/unzip-stream": "^0.3.4",
@@ -73,7 +77,6 @@
     "prettier": "^2.7.1",
     "prettier-plugin-organize-imports": "^4.1.0",
     "prettier-plugin-packagejson": "^2.4.7",
-    "semantic-release": "^21.0.7",
-    "wait-for-expect": "^3.0.2"
+    "semantic-release": "^21.0.7"
   }
 }

@@ -1,5 +1,5 @@
 const { enable } = require('debug')
-const waitFor = require('wait-for-expect')
+const waitFor = require('@sadams/wait-for-expect')
 
 const { parse } = require('./cli')
 const { getTool } = require('./get')
@@ -42,7 +42,9 @@ describe('cli', () => {
       platform: process.platform,
       arch: process.arch,
       force: false,
+      silent: false,
       verbose: false,
+      onProgress: expect.any(Function),
     })
   })
 
@@ -182,6 +184,14 @@ describe('cli', () => {
 
     expect(getTool).toHaveBeenCalledWith(
       expect.objectContaining({ force: true })
+    )
+  })
+
+  it('should enable silent mode with the --silent flag', () => {
+    parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '--silent'])
+
+    expect(getTool).toHaveBeenCalledWith(
+      expect.objectContaining({ silent: true })
     )
   })
 })

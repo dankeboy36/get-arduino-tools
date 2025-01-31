@@ -1,5 +1,6 @@
 const fs = require('node:fs/promises')
 const path = require('node:path')
+const { Readable } = require('node:stream')
 const { pipeline } = require('node:stream/promises')
 
 const { download } = require('./download')
@@ -23,7 +24,7 @@ describe('get', () => {
   const mockDestinationFolderPath = '/mock/destination'
   const mockPlatform = 'linux'
   const mockArch = 'x64'
-  const mockBuffer = new Uint8Array([1, 2, 3])
+  const mockData = '1, 2, 3, 4, 5'
   const mockExtractResult = {
     destinationPath: '/mock/extracted',
     cleanup: jest.fn(),
@@ -34,7 +35,10 @@ describe('get', () => {
 
   beforeEach(() => {
     jest.mocked(createLog).mockReturnValue(log)
-    jest.mocked(download).mockResolvedValue(mockBuffer)
+    jest.mocked(download).mockResolvedValue({
+      body: Readable.from(mockData),
+      length: 111,
+    })
     jest.mocked(extract).mockResolvedValue(mockExtractResult)
     jest
       .mocked(getDownloadUrl)
@@ -75,7 +79,7 @@ describe('get', () => {
       url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_1.0.0_Linux_64bit.tar.gz',
     })
     expect(extract).toHaveBeenCalledWith({
-      buffer: mockBuffer,
+      source: expect.any(Readable),
       strip: undefined,
     })
     expect(mockExtractResult.cleanup).toHaveBeenCalled()
