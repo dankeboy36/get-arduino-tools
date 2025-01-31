@@ -16,10 +16,6 @@ const {
 } = require('./tools')
 
 /**
- * Progress: 5% for get the response, 45% for download, 45% for extract, 5% for pipe
- */
-
-/**
  * @type {typeof import('./index').getTool}
  */
 async function getTool({
