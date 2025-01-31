@@ -35,7 +35,7 @@ async function download({ url }) {
 
     const length = getContentLength(headers)
     return {
-      body: Readable.fromWeb(ReadableStream.from(body)),
+      body: createReadableFromWeb(body),
       length: length,
     }
   } catch (err) {
@@ -73,6 +73,28 @@ function getContentLength(headers) {
       []
     )[0] ?? 0
   )
+}
+
+/**
+ * @param {ReadableStream} body
+ * @returns {Readable}
+ */
+function createReadableFromWeb(body) {
+  const reader = body.getReader()
+  return new Readable({
+    async read() {
+      try {
+        const { done, value } = await reader.read()
+        if (done) {
+          this.push(null)
+        } else {
+          this.push(Buffer.from(value))
+        }
+      } catch (err) {
+        this.destroy(err)
+      }
+    },
+  })
 }
 
 module.exports = {
