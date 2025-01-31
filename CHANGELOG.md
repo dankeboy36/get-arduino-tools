@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.7...1.1.0) (2025-01-31)
+
+
+### Features
+
+* add progress support ([#12](https://github.com/dankeboy36/get-arduino-tools/issues/12)) ([23c5453](https://github.com/dankeboy36/get-arduino-tools/commit/23c5453f91f6a40cf391349423c2357f9d66a3be))
+
 ## [1.0.7](https://github.com/dankeboy36/get-arduino-tools/compare/1.0.6...1.0.7) (2025-01-26)
 
 
