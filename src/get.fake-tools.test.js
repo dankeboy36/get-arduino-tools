@@ -40,11 +40,6 @@ describe('get', () => {
       tool: '',
       version: '',
       destinationFolderPath: tempDirPath,
-      onProgress: (params) => {
-        if (params.current) {
-          console.log(params.current)
-        }
-      },
     })
 
     expect(fs.access(toolPath, fs.constants.X_OK)).resolves.toBeUndefined()
