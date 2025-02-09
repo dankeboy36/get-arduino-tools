@@ -2,12 +2,14 @@ const { ReadableStream } = require('node:stream/web')
 const { Readable } = require('node:stream')
 
 const xhr = require('request-light-stream')
+const { CancellationTokenSource } = require('vscode-jsonrpc')
 
 const { createLog } = require('./log')
 
 /**
  * @typedef {Object} DownloadParams
  * @property {string} url
+ * @property {AbortSignal} [signal]
  *
  * @typedef {Object} DownloadResult
  * @property {Readable} body
@@ -16,14 +18,23 @@ const { createLog } = require('./log')
  * @param {DownloadParams} params
  * @returns {Promise<DownloadResult>}
  */
-async function download({ url }) {
+async function download({ url, signal }) {
   const log = createLog('download')
+
+  /** @type {xhr.CancellationToken|undefined} */
+  let token
+  if (signal) {
+    const source = new CancellationTokenSource()
+    token = source.token
+    signal.addEventListener('abort', () => source.cancel())
+  }
 
   log('Downloading', url)
   try {
     const { body, status, headers } = await xhr.xhr({
       url,
       responseType: 'stream',
+      token,
     })
     if (status !== 200) {
       throw new Error(`Failed to download ${url}: unexpected status ${status}`)
@@ -36,7 +47,7 @@ async function download({ url }) {
     const length = getContentLength(headers)
     return {
       body: createReadableFromWeb(body),
-      length: length,
+      length,
     }
   } catch (err) {
     log(

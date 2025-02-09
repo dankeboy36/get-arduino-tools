@@ -1,4 +1,5 @@
 const fs = require('node:fs/promises')
+const http = require('node:http')
 const path = require('node:path')
 const { Readable } = require('node:stream')
 
@@ -6,7 +7,11 @@ const tmp = require('tmp-promise')
 
 const { download } = require('./download')
 const { getTool } = require('./get')
-const { createToolBasename, getArchiveType } = require('./tools')
+const {
+  createToolBasename,
+  getArchiveType,
+  getDownloadUrl,
+} = require('./tools')
 
 jest.mock('./download')
 jest.mock('./tools')
@@ -89,6 +94,50 @@ describe('get', () => {
     })
 
     expect(fs.access(toolPath, fs.constants.X_OK)).resolves.toBeUndefined()
+  })
+
+  describe('with fake server', () => {
+    let server
+
+    beforeAll(async () => {
+      server = http.createServer(async (_, res) => {
+        const { body, length } = await loadFakeToolByName('fake-tool.tar.gz')
+        res.setHeader('Content-Type', 'text/plain')
+        res.setHeader('Content-Length', length)
+        body.pipe(res)
+      })
+      await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+    })
+
+    afterAll(() => {
+      server?.close()
+    })
+
+    it('should cancel the download', async () => {
+      const { address, port } = server.address()
+      jest.mocked(download).mockImplementation(({ url, signal }) => {
+        const originalModule = jest.requireActual('./download')
+        return originalModule.download({ url, signal })
+      })
+      jest.mocked(getDownloadUrl).mockReturnValue(`http://${address}:${port}`)
+      jest.mocked(createToolBasename).mockReturnValue('fake-tool')
+      jest.mocked(getArchiveType).mockReturnValue('gzip')
+
+      const controller = new AbortController()
+      const { signal } = controller
+      controller.abort()
+
+      await expect(
+        getTool({
+          tool: '',
+          version: '',
+          destinationFolderPath: tempDirPath,
+          signal,
+        })
+      ).rejects.toThrow(/abort/)
+
+      expect(fs.readdir(tempDirPath)).resolves.toStrictEqual([])
+    })
   })
 
   async function loadFakeToolByName(fakeToolName) {

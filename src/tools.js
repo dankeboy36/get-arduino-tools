@@ -37,6 +37,7 @@ function createToolBasename({ tool, platform }) {
  * @property {string} version
  * @property {NodeJS.Platform} platform
  * @property {NodeJS.Architecture} arch
+ * @property {AbortSignal} [signal]
  *
  * @param {GetDownloadUrlParams} params
  * @returns {string}

@@ -24,6 +24,7 @@ export declare interface GetToolParams {
   arch?: NodeJS.Architecture
   force?: boolean
   onProgress?: (params: Readonly<OnProgressParams>) => void
+  signal?: AbortSignal
 }
 
 export declare interface GetToolResult {
