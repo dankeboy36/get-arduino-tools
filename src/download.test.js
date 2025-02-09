@@ -86,6 +86,27 @@ describe('download', () => {
 
       await expect(download({ url })).rejects.toThrow(/some error/gi)
     })
+
+    it('should handle stream that errors with abort error', async () => {
+      const data1 = 'first chunk'
+      const data2 = 'second chunk'
+      const body = createReadStream(
+        [data1, data2],
+        new DOMException('AbortError', 'AbortError')
+      )
+      mockXhr.mockResolvedValue({ body, status: 200 })
+
+      const result = await download({ url })
+
+      expect(result.body).toBeInstanceOf(Readable)
+      try {
+        for await (const _ of result.body) {
+        }
+        fail('expected broken readable')
+      } catch (error) {
+        expect(error.name).toBe('AbortError')
+      }
+    })
   })
 
   describe('length', () => {
@@ -156,11 +177,22 @@ describe('download', () => {
     })
   })
 
-  function createReadStream(data) {
+  /**
+   * @param {string|string[]} chunk
+   * @param {Error|undefined} [error=undefined]
+   */
+  function createReadStream(chunk, error = undefined) {
+    const chunks = Array.isArray(chunk) ? chunk : [chunk]
     return new ReadableStream({
       start(controller) {
-        controller.enqueue(new TextEncoder().encode(data))
-        controller.close()
+        chunks.forEach((data) =>
+          controller.enqueue(new TextEncoder().encode(data))
+        )
+        if (error) {
+          controller.error(error)
+        } else {
+          controller.close()
+        }
       },
     })
   }

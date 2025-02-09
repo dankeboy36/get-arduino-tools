@@ -42,7 +42,7 @@ gat get <tool> <version> [options]
 - `-a, --arch <arch>`: Architecture (default: current architecture).
 - `-f, --force`: Force download to overwrite existing files (default: false).
 - `--verbose`: Enables verbose output (default: false).
-- `--silent`: 'Disables the progress bar (default: false).
+- `--silent`: Disables the progress bar (default: false).
 
 #### Examples
 

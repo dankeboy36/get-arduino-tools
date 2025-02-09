@@ -26,6 +26,7 @@ async function getTool({
   arch = process.arch,
   force = false,
   onProgress = () => {},
+  signal,
 }) {
   const log = createLog('getTool')
 
@@ -58,7 +59,7 @@ async function getTool({
     }
     const destination = destinationFd.createWriteStream()
 
-    const downloadResult = await download({ url })
+    const downloadResult = await download({ url, signal })
 
     const progressCounter = new ProgressCounter(downloadResult.length)
     progressCounter.on('progress', onProgress)
@@ -82,7 +83,7 @@ async function getTool({
 
     try {
       log('Piping from', sourcePath, 'to', destinationPath)
-      await pipeline(source, destination)
+      await pipeline(source, destination, { signal })
       log('Piping completed')
       toCleanupOnError = undefined
     } finally {
