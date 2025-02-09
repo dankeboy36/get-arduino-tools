@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/dankeboy36/get-arduino-tools/compare/1.1.1...1.2.0) (2025-02-09)
+
+
+### Features
+
+* cancellation support ([#14](https://github.com/dankeboy36/get-arduino-tools/issues/14)) ([e6cc22a](https://github.com/dankeboy36/get-arduino-tools/commit/e6cc22a13f46daa07cc8ce57d6b62dbcc6ed679c))
+
 ## [1.1.1](https://github.com/dankeboy36/get-arduino-tools/compare/1.1.0...1.1.1) (2025-01-31)
 
 
