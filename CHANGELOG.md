@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.0...1.2.1) (2025-02-10)
+
+
+### Bug Fixes
+
+* incorrect progress event ([#15](https://github.com/dankeboy36/get-arduino-tools/issues/15)) ([899fbe4](https://github.com/dankeboy36/get-arduino-tools/commit/899fbe445a9d834c9727ae18c58e22c4795a14c1))
+
 # [1.2.0](https://github.com/dankeboy36/get-arduino-tools/compare/1.1.1...1.2.0) (2025-02-09)
 
 
