@@ -5,11 +5,11 @@ describe('ProgressCounter', () => {
     const totalLength = 100
     const progressCounter = new ProgressCounter(totalLength)
     const chunks = [10, 20, 30, 40]
-    const expectedProgress = [10, 30, 60, 100]
+    const expectedProgress = [10, 30, 60, 100].map((current) => ({ current }))
     let progressIndex = 0
 
     progressCounter.on('progress', (progress) => {
-      expect(progress).toBe(expectedProgress[progressIndex])
+      expect(progress).toStrictEqual(expectedProgress[progressIndex])
       progressIndex++
       if (progressIndex === expectedProgress.length) {
         done()
@@ -37,11 +37,11 @@ describe('ProgressCounter', () => {
     const totalLength = 100
     const progressCounter = new ProgressCounter(totalLength)
     const chunks = [50, 50]
-    const expectedProgress = [50, 100]
+    const expectedProgress = [50, 100].map((current) => ({ current }))
     let progressIndex = 0
 
     progressCounter.on('progress', (progress) => {
-      expect(progress).toBe(expectedProgress[progressIndex])
+      expect(progress).toStrictEqual(expectedProgress[progressIndex])
       progressIndex++
       if (progressIndex === expectedProgress.length) {
         done()

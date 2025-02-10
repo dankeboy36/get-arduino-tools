@@ -22,7 +22,9 @@ class ProgressCounter extends EventEmitter {
       )
       if (nextPercentage > this.currentPercentage) {
         this.currentPercentage = nextPercentage
-        this.emit('progress', this.currentPercentage)
+        /** @type {import('./index').OnProgressParams} */
+        const progressEvent = { current: this.currentPercentage }
+        this.emit('progress', progressEvent)
       }
     }
   }
