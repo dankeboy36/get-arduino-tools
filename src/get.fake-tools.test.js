@@ -138,6 +138,29 @@ describe('get', () => {
 
       expect(fs.readdir(tempDirPath)).resolves.toStrictEqual([])
     })
+
+    it('should support progress', async () => {
+      const { address, port } = server.address()
+      jest.mocked(download).mockImplementation(({ url, signal }) => {
+        const originalModule = jest.requireActual('./download')
+        return originalModule.download({ url, signal })
+      })
+      jest.mocked(getDownloadUrl).mockReturnValue(`http://${address}:${port}`)
+      jest.mocked(createToolBasename).mockReturnValue('fake-tool')
+      jest.mocked(getArchiveType).mockReturnValue('gzip')
+      const onProgress = jest.fn()
+
+      await getTool({
+        tool: '',
+        version: '',
+        destinationFolderPath: tempDirPath,
+        onProgress,
+      })
+
+      expect(fs.readdir(tempDirPath)).resolves.toStrictEqual(['fake-tool'])
+      expect(onProgress).toHaveBeenNthCalledWith(1, { current: 50 })
+      expect(onProgress).toHaveBeenNthCalledWith(2, { current: 100 })
+    })
   })
 
   async function loadFakeToolByName(fakeToolName) {

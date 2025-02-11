@@ -7,7 +7,7 @@ const { pipeline } = require('node:stream/promises')
 const { download } = require('./download')
 const { extract } = require('./extract')
 const { createLog } = require('./log')
-const ProgressCounter = require('./progress')
+const { ProgressCounter } = require('./progress')
 const {
   createToolBasename,
   getArchiveType,
@@ -61,21 +61,22 @@ async function getTool({
 
     const downloadResult = await download({ url, signal })
 
-    const progressCounter = new ProgressCounter(downloadResult.length)
-    progressCounter.on('progress', onProgress)
-
-    const progressTransform = new Transform({
-      transform(chunk, _, callback) {
-        progressCounter.work(chunk.length)
-        callback(null, chunk)
-      },
-    })
+    const counter = new ProgressCounter(downloadResult.length)
+    counter.on('progress', onProgress)
 
     const archiveType = getArchiveType({ tool, platform })
     log('Got archive type', archiveType, 'from', tool, platform)
     const extractResult = await extract({
-      source: downloadResult.body.pipe(progressTransform),
+      source: downloadResult.body.pipe(
+        new Transform({
+          transform: (chunk, _, next) => {
+            counter.onDownload(chunk.length)
+            next(null, chunk)
+          },
+        })
+      ),
       archiveType,
+      counter,
     })
 
     const sourcePath = path.join(extractResult.destinationPath, basename)

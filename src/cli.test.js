@@ -1,4 +1,5 @@
 const { enable } = require('debug')
+const ProgressBar = require('progress')
 const waitFor = require('@sadams/wait-for-expect')
 
 const { parse } = require('./cli')
@@ -9,6 +10,8 @@ jest.mock('debug', () => ({
   ...jest.requireActual('debug'),
   enable: jest.fn(),
 }))
+jest.mock('progress')
+
 jest.mock('./get')
 
 describe('cli', () => {
@@ -46,6 +49,25 @@ describe('cli', () => {
       verbose: false,
       onProgress: expect.any(Function),
     })
+  })
+
+  it('should provide progress', async () => {
+    const currents = [0, 5, 5, 6, 10]
+
+    const tick = jest.fn()
+    jest.mocked(ProgressBar).mockImplementation(() => ({ tick }))
+    jest.mocked(getTool).mockImplementation(async ({ onProgress }) => {
+      currents.forEach((current) => onProgress?.({ current }))
+      return { toolPath: '' }
+    })
+
+    parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1'])
+
+    // noop 0
+    expect(tick).toHaveBeenNthCalledWith(1, 5) // 5
+    // noop 5
+    expect(tick).toHaveBeenNthCalledWith(2, 1) // 6
+    expect(tick).toHaveBeenNthCalledWith(3, 4) // 10
   })
 
   it('should enable the log with the --verbose flag', () => {

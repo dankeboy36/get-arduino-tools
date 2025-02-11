@@ -11,11 +11,13 @@ const bz2 = require('unbzip2-stream')
 const unzip = require('unzip-stream')
 
 const { createLog } = require('./log')
+const { ProgressStream } = require('./progress')
 
 /**
  * @typedef {Object} ExtractParams
  * @property {Readable} source
  * @property {import('./tools').ArchiveType} archiveType
+ * @property {import('./progress').ProgressCounter} [counter]
  *
  * @typedef {Object} ExtractResult
  * @property {string} destinationPath
@@ -24,7 +26,7 @@ const { createLog } = require('./log')
  * @param {ExtractParams} params
  * @returns {Promise<ExtractResult>}
  */
-async function extract({ source, archiveType }) {
+async function extract({ source, archiveType, counter }) {
   const log = createLog('extract')
 
   const { path: destinationPath, cleanup } = await tmp.dir({
@@ -38,15 +40,15 @@ async function extract({ source, archiveType }) {
   try {
     switch (archiveType) {
       case 'gzip': {
-        await extractGzipTar({ source, destinationPath })
+        await extractGzipTar({ source, destinationPath, counter })
         break
       }
       case 'bzip2': {
-        await extractBzip2Tar({ source, destinationPath })
+        await extractBzip2Tar({ source, destinationPath, counter })
         break
       }
       case 'zip': {
-        await extractZip({ source, destinationPath })
+        await extractZip({ source, destinationPath, counter })
         break
       }
       default: {
@@ -67,16 +69,26 @@ async function extract({ source, archiveType }) {
   }
 }
 
-async function extractZip({ source, destinationPath }) {
+async function extractZip({ source, destinationPath, counter }) {
   const log = createLog('extractZip')
 
   const transformEntry = new Transform({
     objectMode: true,
     transform: async (entry, _, next) => {
+      counter?.onEnter(entry.size)
       const entryPath = entry.path
       const destinationFilePath = path.join(destinationPath, entryPath)
       log('extracting', destinationFilePath)
-      await pipeline(entry, createWriteStream(destinationFilePath))
+      await pipeline(
+        entry,
+        new Transform({
+          transform: (chunk, _, next) => {
+            counter.onExtract(chunk.length)
+            next(null, chunk)
+          },
+        }),
+        createWriteStream(destinationFilePath)
+      )
       next()
     },
   })
@@ -86,17 +98,18 @@ async function extractZip({ source, destinationPath }) {
   log('extracting to ', destinationPath)
 }
 
-async function extractGzipTar({ source, destinationPath }) {
+async function extractGzipTar({ source, destinationPath, counter }) {
   const log = createLog('extractGzipTar')
   return extractTar({
     source,
     decompress: zlib.createGunzip(),
     destinationPath,
     log,
+    counter,
   })
 }
 
-async function extractBzip2Tar({ source, destinationPath }) {
+async function extractBzip2Tar({ source, destinationPath, counter }) {
   const log = createLog('extractBzip2Tar')
   return extractTar({
     source,
@@ -104,6 +117,7 @@ async function extractBzip2Tar({ source, destinationPath }) {
     destinationPath,
     log,
     strip: 1, // non-Arduino tools have a parent folder
+    counter,
   })
 }
 
@@ -113,6 +127,7 @@ async function extractTar({
   destinationPath,
   log,
   strip = 0,
+  counter,
 }) {
   log('extracting to ', destinationPath)
 
@@ -124,6 +139,7 @@ async function extractTar({
       stream.on('end', next)
       return
     }
+    counter?.onEnter(header.size)
     let basename = header.name
     if (strip > 0) {
       // the path is always POSIX inside the tar. For example, "folder/fake-tool"
@@ -134,7 +150,16 @@ async function extractTar({
     fs.mkdir(path.dirname(destinationFilePath), { recursive: true })
       .then(() => {
         log('extracting', destinationFilePath)
-        return pipeline(stream, createWriteStream(destinationFilePath))
+        return pipeline(
+          stream,
+          new Transform({
+            transform: (chunk, _, next) => {
+              counter.onExtract(chunk.length)
+              next(null, chunk)
+            },
+          }),
+          createWriteStream(destinationFilePath)
+        )
       })
       .then(() => next())
       .catch(next)
