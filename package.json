@@ -29,7 +29,7 @@
   ],
   "scripts": {
     "build": "npm run build:lib && npm run build:cli",
-    "build:cli": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --minify --outfile=dist/cli.js",
+    "build:cli": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --minify --sourcemap --outfile=dist/cli.js",
     "build:lib": "esbuild src/index.js --bundle --platform=node --target=node22 --format=cjs --minify --sourcemap --outfile=dist/index.js",
     "format": "prettier --write .",
     "release": "semantic-release",

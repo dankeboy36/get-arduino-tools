@@ -7,7 +7,13 @@ const { download } = require('./download')
 const { extract } = require('./extract')
 const { getTool } = require('./get')
 const { createLog } = require('./log')
-const { createToolBasename, getDownloadUrl, isArduinoTool } = require('./tools')
+const {
+  createToolBasename,
+  getDownloadUrl,
+  isArduinoTool,
+  getArchiveType,
+} = require('./tools')
+const { ProgressCounter } = require('./progress')
 
 jest.mock('node:fs')
 jest.mock('node:fs/promises')
@@ -61,6 +67,7 @@ describe('get', () => {
       return toolsModule.isArduinoTool(tool)
     })
     jest.mocked(createToolBasename).mockReturnValue('arduino-cli')
+    jest.mocked(getArchiveType).mockReturnValue('zip')
 
     const result = await getTool({
       tool: 'arduino-cli',
@@ -78,10 +85,13 @@ describe('get', () => {
     expect(download).toHaveBeenCalledWith({
       url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_1.0.0_Linux_64bit.tar.gz',
     })
-    expect(extract).toHaveBeenCalledWith({
-      source: expect.any(Readable),
-      strip: undefined,
-    })
+    expect(extract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: expect.any(Readable),
+        archiveType: 'zip',
+        counter: expect.any(ProgressCounter),
+      })
+    )
     expect(mockExtractResult.cleanup).toHaveBeenCalled()
     expect(result.toolPath).toBe(
       path.join(mockDestinationFolderPath, 'arduino-cli')

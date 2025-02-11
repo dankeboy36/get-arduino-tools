@@ -47,7 +47,14 @@ function parse(args) {
             total: 100,
           }
         )
-        onProgress = () => bar.tick(1)
+        let prev = 0
+        onProgress = ({ current }) => {
+          const diff = current - prev
+          if (diff > 0) {
+            prev = current
+            bar.tick(diff)
+          }
+        }
       }
 
       try {

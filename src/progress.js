@@ -1,33 +1,78 @@
 const { EventEmitter } = require('node:events')
+const { Transform } = require('node:stream')
+
+const { createLog } = require('./log')
 
 class ProgressCounter extends EventEmitter {
   /**
-   * @param {number} totalLength
+   * @param {number} toDownloadBytes
    */
-  constructor(totalLength) {
+  constructor(toDownloadBytes) {
     super()
-    this.totalLength = totalLength
-    this.processedLength = 0
+    this.log = createLog('progress')
+    this.toDownloadBytes = toDownloadBytes
+    this.downloadedBytes = 0
+
+    this.toExtractBytes = 0
+    this.extractedBytes = 0
+
     this.currentPercentage = 0
   }
 
   /**
-   * @param {number} chunkLength
+   * @param {number} length
    */
-  work(chunkLength) {
-    this.processedLength += chunkLength
-    if (this.totalLength) {
-      const nextPercentage = Math.trunc(
-        (this.processedLength / this.totalLength) * 100
+  onDownload(length) {
+    this.downloadedBytes += length
+    this.log('download', length, this.downloadedBytes, this.toDownloadBytes)
+    this.work()
+  }
+
+  /**
+   * @param {number} length
+   */
+  onEnter(length) {
+    this.toExtractBytes += length
+    this.log('enter', length, this.extractedBytes, this.toExtractBytes)
+    this.work()
+  }
+
+  /**
+   * @param {number} length
+   */
+  onExtract(length) {
+    this.extractedBytes += length
+    this.log('extract', length, this.extractedBytes, this.toExtractBytes)
+    this.work()
+  }
+
+  work() {
+    let downloadPercentage = 0
+    if (this.toDownloadBytes) {
+      downloadPercentage = Math.trunc(
+        (this.downloadedBytes / this.toDownloadBytes) * 50
       )
-      if (nextPercentage > this.currentPercentage) {
-        this.currentPercentage = nextPercentage
-        /** @type {import('./index').OnProgressParams} */
-        const progressEvent = { current: this.currentPercentage }
-        this.emit('progress', progressEvent)
-      }
+    }
+    let extractedPercentage = 0
+    if (this.toExtractBytes) {
+      extractedPercentage = Math.trunc(
+        (this.extractedBytes / this.toExtractBytes) * 50
+      )
+    }
+
+    let nextPercentage = downloadPercentage + extractedPercentage
+    this.log('next', nextPercentage, 'current', this.currentPercentage)
+
+    if (nextPercentage > this.currentPercentage) {
+      this.currentPercentage = nextPercentage
+      /** @type {import('./index').OnProgressParams} */
+      const progressEvent = { current: this.currentPercentage }
+      this.log('emit progress', progressEvent)
+      this.emit('progress', progressEvent)
     }
   }
 }
 
-module.exports = ProgressCounter
+module.exports = {
+  ProgressCounter,
+}
