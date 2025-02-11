@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.1...1.2.2) (2025-02-11)
+
+
+### Bug Fixes
+
+* split progress to download and extract parts ([#16](https://github.com/dankeboy36/get-arduino-tools/issues/16)) ([473d76a](https://github.com/dankeboy36/get-arduino-tools/commit/473d76a26b03547a873935044046e4e8e85315ea))
+
 ## [1.2.1](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.0...1.2.1) (2025-02-10)
 
 
