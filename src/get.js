@@ -55,7 +55,11 @@ async function getTool({
     log('Opening destination file', destinationPath, flags, mode)
     const destinationFd = await fs.open(destinationPath, flags, mode)
     if (!force) {
-      toCleanupOnError = () => fs.unlink(destinationPath)
+      toCleanupOnError = async () => {
+        try {
+          await fs.rm(destinationPath, { force: true })
+        } catch {}
+      }
     }
     const destination = destinationFd.createWriteStream()
 
@@ -96,6 +100,7 @@ async function getTool({
     log('Failed to download from', url, err)
     throw err
   } finally {
+    // destinationFd?.close()
     await toCleanupOnError?.()
   }
 }

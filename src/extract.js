@@ -11,7 +11,6 @@ const bz2 = require('unbzip2-stream')
 const unzip = require('unzip-stream')
 
 const { createLog } = require('./log')
-const { ProgressStream } = require('./progress')
 
 /**
  * @typedef {Object} ExtractParams
@@ -74,12 +73,17 @@ async function extractZip({ source, destinationPath, counter }) {
 
   const transformEntry = new Transform({
     objectMode: true,
-    transform: async (entry, _, next) => {
+    transform: (entry, _, next) => {
       counter?.onEnter(entry.size)
       const entryPath = entry.path
+      if (entryPath.includes('..')) {
+        log('invalid entry', entryPath)
+        next(new Error('Invalid entry'))
+        return
+      }
       const destinationFilePath = path.join(destinationPath, entryPath)
       log('extracting', destinationFilePath)
-      await pipeline(
+      pipeline(
         entry,
         new Transform({
           transform: (chunk, _, next) => {
@@ -89,7 +93,8 @@ async function extractZip({ source, destinationPath, counter }) {
         }),
         createWriteStream(destinationFilePath)
       )
-      next()
+        .then(() => next())
+        .catch(next)
     },
   })
 
@@ -141,6 +146,11 @@ async function extractTar({
     }
     counter?.onEnter(header.size)
     let basename = header.name
+    if (basename.includes('..')) {
+      log('invalid entry', basename)
+      next(new Error('Invalid entry'))
+      return
+    }
     if (strip > 0) {
       // the path is always POSIX inside the tar. For example, "folder/fake-tool"
       const parts = basename.split(path.posix.sep).slice(strip)
