@@ -67,7 +67,7 @@
     "@types/unbzip2-stream": "^1.4.3",
     "@types/unzip-stream": "^0.3.4",
     "babel-jest": "^29.7.0",
-    "esbuild": "^0.24.2",
+    "esbuild": "^0.25.0",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^6.10.1",
     "eslint-config-standard": "^17.1.0",
