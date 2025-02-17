@@ -153,14 +153,6 @@ async function extractTar({
 
     counter?.onEnter(header.size)
     let entryPath = header.name
-    if (entryPath.includes('..')) {
-      log('invalid archive entry', entryPath)
-      invalidEntries.push(entryPath)
-      stream.resume()
-      stream.on('end', next)
-      return
-    }
-
     if (strip > 0) {
       // the path is always POSIX inside the tar. For example, "folder/fake-tool"
       const parts = entryPath.split(path.posix.sep).slice(strip)
@@ -168,6 +160,15 @@ async function extractTar({
     }
 
     const destinationFilePath = path.join(destinationPath, entryPath)
+    const resolvedPath = path.resolve(destinationFilePath)
+    if (!resolvedPath.startsWith(path.resolve(destinationPath))) {
+      log('invalid archive entry', entryPath)
+      invalidEntries.push(entryPath)
+      stream.resume()
+      stream.on('end', next)
+      return
+    }
+
     fs.mkdir(path.dirname(destinationFilePath), { recursive: true })
       .then(() => {
         log('extracting', destinationFilePath)
