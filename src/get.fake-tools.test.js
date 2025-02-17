@@ -97,53 +97,37 @@ describe('get', () => {
   })
 
   describe('zip-slip', () => {
-    // itIsWin32('should error (win32 zip)', async () => {
-    //   jest
-    //     .mocked(download)
-    //     .mockResolvedValue(loadFakeToolByName('zip-slip/evil-win32.zip'))
-    //   jest.mocked(createToolBasename).mockReturnValue('evil.sh')
-    //   jest.mocked(getArchiveType).mockReturnValue('zip')
+    it('should error (win32 zip)', async () => {
+      jest
+        .mocked(download)
+        .mockResolvedValue(loadFakeToolByName('zip-slip/evil.zip'))
+      jest.mocked(createToolBasename).mockReturnValue('evil.sh')
+      jest.mocked(getArchiveType).mockReturnValue('zip')
 
-    //   await expect(
-    //     getTool({
-    //       tool: '',
-    //       version: '',
-    //       destinationFolderPath: tempDirPath,
-    //     })
-    //   ).rejects.toThrow(/invalid entry/gi)
-    // })
+      await expect(
+        getTool({
+          tool: '',
+          version: '',
+          destinationFolderPath: tempDirPath,
+        })
+      ).rejects.toThrow(/invalid archive entry/gi)
+    })
 
-    // itIsWin32('should error (win32 bz2)', async () => {
-    //   jest
-    //     .mocked(download)
-    //     .mockResolvedValue(loadFakeToolByName('zip-slip/evil-win32.tar.bz2'))
-    //   jest.mocked(createToolBasename).mockReturnValue('evil.sh')
-    //   jest.mocked(getArchiveType).mockReturnValue('bzip2')
+    it('should error (tar.gz)', async () => {
+      jest
+        .mocked(download)
+        .mockResolvedValue(loadFakeToolByName('zip-slip/evil.tar.gz'))
+      jest.mocked(createToolBasename).mockReturnValue('evil.sh')
+      jest.mocked(getArchiveType).mockReturnValue('gzip')
 
-    //   await expect(
-    //     getTool({
-    //       tool: '',
-    //       version: '',
-    //       destinationFolderPath: tempDirPath,
-    //     })
-    //   ).rejects.toThrow(/invalid entry/gi)
-    // })
-
-    // itIsNotWin32('should error (tar.gz)', async () => {
-    //   jest
-    //     .mocked(download)
-    //     .mockResolvedValue(loadFakeToolByName('zip-slip/evil.tar.gz'))
-    //   jest.mocked(createToolBasename).mockReturnValue('evil.sh')
-    //   jest.mocked(getArchiveType).mockReturnValue('gzip')
-
-    //   await expect(
-    //     getTool({
-    //       tool: '',
-    //       version: '',
-    //       destinationFolderPath: tempDirPath,
-    //     })
-    //   ).rejects.toThrow()
-    // })
+      await expect(
+        getTool({
+          tool: '',
+          version: '',
+          destinationFolderPath: tempDirPath,
+        })
+      ).rejects.toThrow(/invalid archive entry/gi)
+    })
 
     it('should error (tar.bz2)', async () => {
       jest
@@ -158,7 +142,7 @@ describe('get', () => {
           version: '',
           destinationFolderPath: tempDirPath,
         })
-      ).rejects.toThrow(/invalid entry/gi)
+      ).rejects.toThrow(/invalid archive entry/gi)
     })
   })
 

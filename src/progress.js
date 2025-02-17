@@ -1,5 +1,4 @@
 const { EventEmitter } = require('node:events')
-const { Transform } = require('node:stream')
 
 const { createLog } = require('./log')
 
@@ -56,7 +55,8 @@ class ProgressCounter extends EventEmitter {
     let extractedPercentage = 0
     if (this.toExtractBytes) {
       extractedPercentage = Math.trunc(
-        (this.extractedBytes / this.toExtractBytes) * 50
+        (this.extractedBytes / this.toExtractBytes) *
+          (this.toDownloadBytes ? 50 : 100)
       )
     }
 
