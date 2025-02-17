@@ -16,6 +16,8 @@ const {
 jest.mock('./download')
 jest.mock('./tools')
 
+const itIsNotWin32 = process.platform !== 'win32' ? it : it.skip
+
 describe('get', () => {
   let tempDirPath
   let cleanup
@@ -97,7 +99,7 @@ describe('get', () => {
   })
 
   describe('zip-slip', () => {
-    it('should error (win32 zip)', async () => {
+    itIsNotWin32('should error (zip)', async () => {
       jest
         .mocked(download)
         .mockResolvedValue(loadFakeToolByName('zip-slip/evil.zip'))
@@ -113,7 +115,7 @@ describe('get', () => {
       ).rejects.toThrow(/invalid archive entry/gi)
     })
 
-    it('should error (tar.gz)', async () => {
+    itIsNotWin32('should error (tar.gz)', async () => {
       jest
         .mocked(download)
         .mockResolvedValue(loadFakeToolByName('zip-slip/evil.tar.gz'))
@@ -129,7 +131,7 @@ describe('get', () => {
       ).rejects.toThrow(/invalid archive entry/gi)
     })
 
-    it('should error (tar.bz2)', async () => {
+    itIsNotWin32('should error (tar.bz2)', async () => {
       jest
         .mocked(download)
         .mockResolvedValue(loadFakeToolByName('zip-slip/evil.tar.bz2'))
