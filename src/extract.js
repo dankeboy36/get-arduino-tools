@@ -74,7 +74,7 @@ async function extractZip({ source, destinationPath, counter }) {
   const invalidEntries = []
   const transformEntry = new Transform({
     objectMode: true,
-    transform: (entry, _, next) => {
+    transform: async (entry, _, next) => {
       counter?.onEnter(entry.size)
       const entryPath = entry.path
       // unzip-stream guards against `..` entry paths by converting them to `.`
@@ -87,7 +87,7 @@ async function extractZip({ source, destinationPath, counter }) {
       }
       const destinationFilePath = path.join(destinationPath, entryPath)
       log('extracting', destinationFilePath)
-      pipeline(
+      await pipeline(
         entry,
         new Transform({
           transform: (chunk, _, next) => {
@@ -97,8 +97,7 @@ async function extractZip({ source, destinationPath, counter }) {
         }),
         createWriteStream(destinationFilePath)
       )
-        .then(() => next())
-        .catch(next)
+      next()
     },
   })
 

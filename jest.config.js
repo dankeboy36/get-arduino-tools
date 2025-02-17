@@ -7,7 +7,6 @@ slowJestConfig.testMatch?.forEach((glob) =>
 
 /** @type {import('jest').Config} */
 module.exports = {
-  setupFiles: ['./jest.setup.js'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
   collectCoverageFrom,
