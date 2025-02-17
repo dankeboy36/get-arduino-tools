@@ -11,7 +11,6 @@ const bz2 = require('unbzip2-stream')
 const unzip = require('unzip-stream')
 
 const { createLog } = require('./log')
-const { ProgressStream } = require('./progress')
 
 /**
  * @typedef {Object} ExtractParams
@@ -72,11 +71,20 @@ async function extract({ source, archiveType, counter }) {
 async function extractZip({ source, destinationPath, counter }) {
   const log = createLog('extractZip')
 
+  const invalidEntries = []
   const transformEntry = new Transform({
     objectMode: true,
     transform: async (entry, _, next) => {
       counter?.onEnter(entry.size)
       const entryPath = entry.path
+      // unzip-stream guards against `..` entry paths by converting them to `.`
+      // https://github.com/mhr3/unzip-stream/commit/d5823009634ad448873ec984bed84c18ee92f9b5#diff-fda971882fda4a106029f88d4b0a6eebeb04e7847cae8516b332b5b57e7e3370R153-R154
+      if (entryPath.split(path.sep).includes('.')) {
+        log('invalid archive entry', entryPath)
+        invalidEntries.push(entryPath)
+        next()
+        return
+      }
       const destinationFilePath = path.join(destinationPath, entryPath)
       log('extracting', destinationFilePath)
       await pipeline(
@@ -94,7 +102,9 @@ async function extractZip({ source, destinationPath, counter }) {
   })
 
   await pipeline(source, unzip.Parse(), transformEntry)
-
+  if (invalidEntries.length) {
+    throw new Error('Invalid archive entry')
+  }
   log('extracting to ', destinationPath)
 }
 
@@ -131,6 +141,7 @@ async function extractTar({
 }) {
   log('extracting to ', destinationPath)
 
+  const invalidEntries = []
   const extract = tar.extract()
 
   extract.on('entry', (header, stream, next) => {
@@ -139,14 +150,25 @@ async function extractTar({
       stream.on('end', next)
       return
     }
+
     counter?.onEnter(header.size)
-    let basename = header.name
+    let entryPath = header.name
     if (strip > 0) {
       // the path is always POSIX inside the tar. For example, "folder/fake-tool"
-      const parts = basename.split(path.posix.sep).slice(strip)
-      basename = parts.length ? parts.join(path.sep) : basename
+      const parts = entryPath.split(path.posix.sep).slice(strip)
+      entryPath = parts.length ? parts.join(path.sep) : entryPath
     }
-    const destinationFilePath = path.join(destinationPath, basename)
+
+    const destinationFilePath = path.join(destinationPath, entryPath)
+    const resolvedPath = path.resolve(destinationFilePath)
+    if (!resolvedPath.startsWith(path.resolve(destinationPath))) {
+      log('invalid archive entry', entryPath)
+      invalidEntries.push(entryPath)
+      stream.resume()
+      stream.on('end', next)
+      return
+    }
+
     fs.mkdir(path.dirname(destinationFilePath), { recursive: true })
       .then(() => {
         log('extracting', destinationFilePath)
@@ -166,6 +188,9 @@ async function extractTar({
   })
 
   await pipeline(source, decompress, extract)
+  if (invalidEntries.length) {
+    throw new Error('Invalid archive entry')
+  }
   log('extracted to', destinationPath)
 }
 
