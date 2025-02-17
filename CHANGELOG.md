@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.2...1.2.3) (2025-02-17)
+
+
+### Bug Fixes
+
+* **security:** add guard against Zip Slip vulnerability (CWE-22) ([#18](https://github.com/dankeboy36/get-arduino-tools/issues/18)) ([9c9a422](https://github.com/dankeboy36/get-arduino-tools/commit/9c9a422887648f37ff9c4a5b766c0d68bc59fe97))
+
 ## [1.2.2](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.1...1.2.2) (2025-02-11)
 
 
