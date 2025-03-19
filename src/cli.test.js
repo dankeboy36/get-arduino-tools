@@ -17,9 +17,11 @@ jest.mock('./get')
 describe('cli', () => {
   let mockLog
   let consoleSpy
+  let exitSpy
 
   beforeAll(() => {
     mockLog = jest.fn()
+    exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {})
     consoleSpy = jest
       .spyOn(console, 'log')
       .mockImplementation((args) => mockLog(args))
@@ -28,6 +30,7 @@ describe('cli', () => {
 
   afterAll(() => {
     consoleSpy.mockRestore()
+    exitSpy.mockRestore()
   })
 
   beforeEach(() => {
@@ -49,6 +52,8 @@ describe('cli', () => {
       verbose: false,
       onProgress: expect.any(Function),
     })
+
+    expect(exitSpy).not.toHaveBeenCalled()
   })
 
   it('should provide progress', async () => {
@@ -97,12 +102,7 @@ describe('cli', () => {
 
     await waitFor(() => expect(mockLog).toHaveBeenNthCalledWith(1, 'my error'))
 
-    await waitFor(() =>
-      expect(mockLog).toHaveBeenNthCalledWith(
-        2,
-        'Use --force to overwrite existing files'
-      )
-    )
+    expect(exitSpy).toHaveBeenCalledWith(1)
   })
 
   it('should print the reason as is when has no message', async () => {
