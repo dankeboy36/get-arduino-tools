@@ -70,8 +70,9 @@ function parse(args) {
         log('Failed to download tool', err)
         console.log(err?.message || err)
         if (err.code === 'EEXIST' && options.force !== true) {
-          console.log('Use --force to overwrite existing files')
+          return program.error('Use --force to overwrite existing files')
         }
+        return program.error(err?.message || err)
       }
     })
 
