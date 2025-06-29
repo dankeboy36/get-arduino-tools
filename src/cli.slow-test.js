@@ -58,11 +58,8 @@ describe('cli', () => {
       tool: 'arduino-lint',
       version: '1.3.0',
       expectVersion: async (toolPath) => {
-        // The Arduino Lint requires the CLI to be in a library folder, for example
-        // _This will automatically detect the project type and check it against the relevant rules._
-        // https://arduino.github.io/arduino-lint/latest/#getting-started
-        const stdout = await execFile(toolPath, ['version'], true)
-        expect(stdout).toContain('PROJECT_PATH argument version does not exist')
+        const stdout = await execFile(toolPath, ['--version'], true)
+        expect(stdout).toContain('1.3.0')
       },
     },
   }
