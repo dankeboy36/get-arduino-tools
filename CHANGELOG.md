@@ -1,3 +1,10 @@
+## [1.2.5](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.4...1.2.5) (2025-06-29)
+
+
+### Bug Fixes
+
+* can ignore EEXISTS and exit with 0 ([#23](https://github.com/dankeboy36/get-arduino-tools/issues/23)) ([136e062](https://github.com/dankeboy36/get-arduino-tools/commit/136e0620e616d6fe763f70ac9d41d6efd053378f))
+
 ## [1.2.4](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.3...1.2.4) (2025-03-19)
 
 
