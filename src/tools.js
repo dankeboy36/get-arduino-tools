@@ -11,6 +11,7 @@ const arduinoTools = [
   'arduino-cli',
   'arduino-language-server',
   'arduino-fwuploader',
+  'arduino-lint',
 ]
 const clangTools = ['clangd', 'clang-format']
 const tools = /** @type {readonly Tool[]} */ ([...arduinoTools, ...clangTools])

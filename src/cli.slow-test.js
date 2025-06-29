@@ -23,39 +23,50 @@ const clangToolExpectVersion = async (toolPath, expected) => {
 }
 
 describe('cli', () => {
-  /** @type {CliTestParams[]} */
-  const params = [
-    {
+  /** @type {Record<import('./tools').Tool, CliTestParams>} */
+  const params = {
+    'arduino-cli': {
       tool: 'arduino-cli',
-      version: '1.1.1',
+      version: '1.2.2',
       expectVersion: arduinoToolExpectVersion,
     },
-    {
+    'arduino-fwuploader': {
       tool: 'arduino-fwuploader',
       version: '2.4.1',
       expectVersion: arduinoToolExpectVersion,
     },
-    {
+    'arduino-language-server': {
       tool: 'arduino-language-server',
-      version: '0.7.6',
+      version: '0.7.7',
       expectVersion: async (toolPath) => {
         // The Arduino LS requires the CLI and clangd. The assertion expects a failure.
         const stdout = await execFile(toolPath, ['version'], true)
         expect(stdout).toContain('Path to ArduinoCLI config file must be set')
       },
     },
-    {
+    clangd: {
       tool: 'clangd',
       version: '14.0.0',
       expectVersion: clangToolExpectVersion,
     },
-    {
+    'clang-format': {
       tool: 'clang-format',
       version: '14.0.0',
       expectVersion: clangToolExpectVersion,
     },
-  ]
-  params.map(({ tool, version, expectVersion }) =>
+    'arduino-lint': {
+      tool: 'arduino-lint',
+      version: '1.3.0',
+      expectVersion: async (toolPath) => {
+        // The Arduino Lint requires the CLI to be in a library folder, for example
+        // _This will automatically detect the project type and check it against the relevant rules._
+        // https://arduino.github.io/arduino-lint/latest/#getting-started
+        const stdout = await execFile(toolPath, ['version'], true)
+        expect(stdout).toContain('PROJECT_PATH argument version does not exist')
+      },
+    },
+  }
+  Object.values(params).map(({ tool, version, expectVersion }) =>
     it(`should get the ${tool}`, async () => {
       const { path: tempDirPath } = await tmp.dir({
         keep: false,
