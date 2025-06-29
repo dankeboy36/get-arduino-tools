@@ -51,6 +51,7 @@ describe('cli', () => {
       silent: false,
       verbose: false,
       onProgress: expect.any(Function),
+      okIfExists: false,
     })
 
     expect(exitSpy).not.toHaveBeenCalled()
@@ -215,5 +216,40 @@ describe('cli', () => {
     expect(getTool).toHaveBeenCalledWith(
       expect.objectContaining({ silent: true })
     )
+  })
+
+  it('should ignore EEXIST if --ok-if-exists is set', async () => {
+    jest
+      .mocked(getTool)
+      .mockRejectedValueOnce(
+        Object.assign(new Error('my error'), { code: 'EEXIST' })
+      )
+
+    parse([
+      'node',
+      'script.js',
+      'get',
+      'arduino-cli',
+      '1.1.1',
+      '--ok-if-exists',
+    ])
+
+    await waitFor(() => expect(mockLog).toHaveBeenCalledWith('my error'))
+
+    expect(exitSpy).not.toHaveBeenCalled()
+  })
+
+  it('should rethrow EEXIST if --ok-if-exists is not but --force is set', async () => {
+    jest
+      .mocked(getTool)
+      .mockRejectedValueOnce(
+        Object.assign(new Error('my error'), { code: 'EEXIST' })
+      )
+
+    parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '--force'])
+
+    await waitFor(() => expect(mockLog).toHaveBeenCalledWith('my error'))
+
+    expect(exitSpy).toHaveBeenCalledWith(1)
   })
 })

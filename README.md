@@ -9,6 +9,7 @@ Get Arduino Tools (`gat`) is a CLI that helps you easily download various Arduin
 - [Arduino CLI](https://github.com/arduino/arduino-cli)
 - [Arduino Language Server](https://github.com/arduino/arduino-language-server)
 - [Arduino Firmware Uploader](https://github.com/arduino/arduino-fwuploader)
+- [Arduino Lint](https://github.com/arduino/arduino-lint)
 - [`clangd`](https://github.com/arduino/clang-static-binaries)
 - [`clang-format`](https://github.com/arduino/clang-static-binaries)
 
@@ -32,7 +33,7 @@ gat get <tool> <version> [options]
 
 #### Arguments
 
-- `<tool>`: The tool you want to download. Can be one of: `arduino-cli`, `arduino-language-server`, `arduino-fwuploader`, `clangd`, `clang-format`.
+- `<tool>`: The tool you want to download. Can be one of: `arduino-cli`, `arduino-language-server`, `arduino-fwuploader`, `arduino-lint`, `clangd`, `clang-format`.
 - `<version>`: The version of the tool you want to download.
 
 #### Options
@@ -41,6 +42,7 @@ gat get <tool> <version> [options]
 - `-p, --platform <platform>`: Platform (default: current platform).
 - `-a, --arch <arch>`: Architecture (default: current architecture).
 - `-f, --force`: Force download to overwrite existing files (default: false).
+- `--ok-if-exists`: If the tool already exists and is executable, skip download and exit with code 0.
 - `--verbose`: Enables verbose output (default: false).
 - `--silent`: Disables the progress bar (default: false).
 

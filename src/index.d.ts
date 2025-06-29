@@ -2,6 +2,7 @@ const arduinoTools = [
   'arduino-cli',
   'arduino-language-server',
   'arduino-fwuploader',
+  'arduino-lint',
 ] as const
 const clangTools = ['clangd', 'clang-format'] as const
 

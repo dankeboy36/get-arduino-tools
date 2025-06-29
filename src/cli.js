@@ -27,6 +27,11 @@ function parse(args) {
     .option('-p, --platform <platform>', 'Platform', process.platform)
     .option('-a, --arch <arch>', 'Architecture', process.arch)
     .option('-f, --force', 'Force download to overwrite existing files', false)
+    .option(
+      '--ok-if-exists',
+      'If the tool already exists, skip download and exit with code 0',
+      false
+    )
     .option('--verbose', 'Enables the verbose output', false)
     .option('--silent', 'Disables the progress bar', false)
     .description('Get an Arduino tool')
@@ -69,8 +74,13 @@ function parse(args) {
       } catch (err) {
         log('Failed to download tool', err)
         console.log(err?.message || err)
-        if (err.code === 'EEXIST' && options.force !== true) {
-          return program.error('Use --force to overwrite existing files')
+        if (err.code === 'EEXIST') {
+          if (options.okIfExists) {
+            log('Tool already exists and is executable, skipping download')
+            return
+          } else if (options.force !== true) {
+            return program.error('Use --force to overwrite existing files')
+          }
         }
         return program.error(err?.message || err)
       }
