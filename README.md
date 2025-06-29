@@ -42,7 +42,7 @@ gat get <tool> <version> [options]
 - `-p, --platform <platform>`: Platform (default: current platform).
 - `-a, --arch <arch>`: Architecture (default: current architecture).
 - `-f, --force`: Force download to overwrite existing files (default: false).
-- `--ok-if-exists`: If the tool already exists and is executable, skip download and exit with code 0.
+- `--ok-if-exists`: If the tool already exists, skip download and exit with code 0.
 - `--verbose`: Enables verbose output (default: false).
 - `--silent`: Disables the progress bar (default: false).
 
