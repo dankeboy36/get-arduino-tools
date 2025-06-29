@@ -1,3 +1,10 @@
+## [1.2.6](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.5...1.2.6) (2025-06-29)
+
+
+### Bug Fixes
+
+* correctly use version flag for Arduino Lint in tests ([#24](https://github.com/dankeboy36/get-arduino-tools/issues/24)) ([78d2450](https://github.com/dankeboy36/get-arduino-tools/commit/78d2450fa7901a926278f33b49f6736a237dfb42))
+
 ## [1.2.5](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.4...1.2.5) (2025-06-29)
 
 
