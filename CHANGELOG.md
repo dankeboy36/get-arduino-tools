@@ -1,3 +1,10 @@
+## [1.2.10](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.9...1.2.10) (2025-12-18)
+
+
+### Bug Fixes
+
+* add missing `okIfExists` param  ([#37](https://github.com/dankeboy36/get-arduino-tools/issues/37)) ([977f8df](https://github.com/dankeboy36/get-arduino-tools/commit/977f8df9e7dac8523aef6f923a2d8c45d5df6a34))
+
 ## [1.2.9](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.8...1.2.9) (2025-12-18)
 
 
