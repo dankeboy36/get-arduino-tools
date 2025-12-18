@@ -182,6 +182,13 @@ describe('cli', () => {
     )
   })
 
+  it('should error on extra positional args', () => {
+    parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', './bin'])
+
+    expect(getToolSpy).not.toHaveBeenCalled()
+    expect(exitSpy).toHaveBeenCalledWith(1)
+  })
+
   it('should override the platform with --platform flag', () => {
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '-p', 'bar'])
 
