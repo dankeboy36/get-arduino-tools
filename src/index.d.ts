@@ -28,6 +28,7 @@ export declare interface GetToolParams {
   force?: boolean
   onProgress?: (params: Readonly<OnProgressParams>) => void
   signal?: AbortSignal
+  okIfExists?: boolean
 }
 
 export declare interface GetToolResult {

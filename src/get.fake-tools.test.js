@@ -133,6 +133,41 @@ describe('get', () => {
     ).resolves.toBeUndefined()
   })
 
+  it('should ignore EEXIST if --ok-if-exists is set', async () => {
+    vi.spyOn(downloadModule, 'download').mockResolvedValue(
+      loadFakeToolByName('fake-tool.zip')
+    )
+    vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('fake-tool.bat')
+    vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('zip')
+
+    const destinationFolderPath = path.join(tempDirPath, 'nested/deep')
+
+    await getTool({
+      tool: '',
+      version: '',
+      destinationFolderPath,
+    })
+
+    await expect(
+      getTool({
+        tool: '',
+        version: '',
+        destinationFolderPath,
+        okIfExists: true,
+      })
+    ).resolves.toStrictEqual({
+      toolPath: path.join(destinationFolderPath, 'fake-tool.bat'),
+    })
+
+    await expect(
+      getTool({
+        tool: '',
+        version: '',
+        destinationFolderPath,
+      })
+    ).rejects.toThrow(/EEXIST/)
+  })
+
   describe('zip-slip', () => {
     itIsNotWin32('should error (zip)', async () => {
       vi.spyOn(downloadModule, 'download').mockResolvedValue(

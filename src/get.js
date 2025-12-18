@@ -22,6 +22,7 @@ async function getTool({
   arch = process.arch,
   force = false,
   onProgress = () => {},
+  okIfExists = false,
   signal,
 }) {
   const log = logModule.createLog('getTool')
@@ -90,6 +91,16 @@ async function getTool({
 
     return { toolPath: destinationPath }
   } catch (err) {
+    if (
+      err instanceof Error &&
+      'code' in err &&
+      err.code === 'EEXIST' &&
+      okIfExists
+    ) {
+      log('Tool already exists and is executable, skipping download')
+      return { toolPath: destinationPath }
+    }
+
     log('Failed to download from', url, err)
     throw err
   } finally {
