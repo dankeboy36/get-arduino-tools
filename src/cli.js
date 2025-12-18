@@ -19,6 +19,7 @@ function parse(args) {
     .command('get')
     .argument('<tool>', `Tool. Can be one of: ${getModule.tools.join(', ')}`)
     .argument('<version>', 'Version')
+    .allowExcessArguments(false)
     .option(
       '-d, --destination-folder-path <path>',
       'Destination folder path',
@@ -35,7 +36,9 @@ function parse(args) {
     .option('--verbose', 'Enables the verbose output', false)
     .option('--silent', 'Disables the progress bar', false)
     .description('Get an Arduino tool')
-    .action(async (tool, version, options) => {
+    .action(async (tool, version, options, command) => {
+      if (command.args.length > 2) return
+
       if (options.verbose === true) {
         debug.enable('gat:*')
       }
