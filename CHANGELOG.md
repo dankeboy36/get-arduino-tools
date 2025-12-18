@@ -1,3 +1,10 @@
+## [1.2.7](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.6...1.2.7) (2025-12-18)
+
+
+### Bug Fixes
+
+* use abs fs path for download target ([#34](https://github.com/dankeboy36/get-arduino-tools/issues/34)) ([5fe915f](https://github.com/dankeboy36/get-arduino-tools/commit/5fe915faebb93f921ac2a4cd400bb31b30476327))
+
 ## [1.2.6](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.5...1.2.6) (2025-06-29)
 
 
