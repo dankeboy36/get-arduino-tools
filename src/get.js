@@ -46,6 +46,9 @@ async function getTool({
   const mode = 511 // decimal equivalent of '0o777'
 
   try {
+    log('Ensuring destination folder', destinationFolderPath)
+    await fs.mkdir(destinationFolderPath, { recursive: true })
+
     log('Opening destination file', destinationPath, flags, mode)
     const destinationFd = await fs.open(destinationPath, flags, mode)
     if (!force) {
