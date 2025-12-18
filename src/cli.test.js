@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import debugModule from 'debug'
 import waitFor from 'wait-for-expect'
 
@@ -138,11 +140,11 @@ describe('cli', () => {
       'arduino-cli',
       '1.1.1',
       '-d',
-      'path/to/out',
+      '/path/to/out',
     ])
 
     expect(getToolSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ destinationFolderPath: 'path/to/out' })
+      expect.objectContaining({ destinationFolderPath: '/path/to/out' })
     )
   })
 
@@ -154,11 +156,29 @@ describe('cli', () => {
       'arduino-cli',
       '1.1.1',
       '--destination-folder-path',
+      '/path/to/out',
+    ])
+
+    expect(getToolSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ destinationFolderPath: '/path/to/out' })
+    )
+  })
+
+  it('should resolve the absolute filesystem path of the destination', () => {
+    parse([
+      'node',
+      'script.js',
+      'get',
+      'arduino-cli',
+      '1.1.1',
+      '-d',
       'path/to/out',
     ])
 
     expect(getToolSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ destinationFolderPath: 'path/to/out' })
+      expect.objectContaining({
+        destinationFolderPath: path.join(process.cwd(), 'path/to/out'),
+      })
     )
   })
 
