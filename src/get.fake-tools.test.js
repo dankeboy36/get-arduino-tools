@@ -113,6 +113,26 @@ describe('get', () => {
     ).resolves.toBeUndefined()
   })
 
+  it('should create the destination folder', async () => {
+    vi.spyOn(downloadModule, 'download').mockResolvedValue(
+      loadFakeToolByName('fake-tool.zip')
+    )
+    vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('fake-tool.bat')
+    vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('zip')
+
+    const destinationFolderPath = path.join(tempDirPath, 'nested/deep')
+
+    const { toolPath } = await getTool({
+      tool: '',
+      version: '',
+      destinationFolderPath,
+    })
+
+    await expect(
+      fs.access(toolPath, fs.constants.X_OK)
+    ).resolves.toBeUndefined()
+  })
+
   describe('zip-slip', () => {
     itIsNotWin32('should error (zip)', async () => {
       vi.spyOn(downloadModule, 'download').mockResolvedValue(

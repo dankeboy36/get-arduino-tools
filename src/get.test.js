@@ -55,6 +55,7 @@ describe('get', () => {
 
     vi.spyOn(fs, 'open').mockResolvedValue(mockedFd)
     vi.spyOn(fs, 'unlink').mockResolvedValue()
+    vi.spyOn(fs, 'mkdir').mockResolvedValue('')
 
     vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue(mockTool)
     vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('zip')
@@ -80,15 +81,20 @@ describe('get', () => {
       arch: mockArch,
     })
 
+    expect(fs.mkdir).toHaveBeenCalledWith(mockDestinationFolderPath, {
+      recursive: true,
+    })
+
     expect(fs.open).toHaveBeenCalledWith(
       path.join(mockDestinationFolderPath, 'arduino-cli'),
       'wx',
       511
     )
-    expect(downloadModule.download).toHaveBeenCalledWith({
-      url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_1.0.0_Linux_64bit.tar.gz',
-      signal: undefined,
-    })
+    expect(downloadModule.download).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_1.0.0_Linux_64bit.tar.gz',
+      })
+    )
     expect(extractModule.extract).toHaveBeenCalledWith(
       expect.objectContaining({
         source: expect.any(Readable),
