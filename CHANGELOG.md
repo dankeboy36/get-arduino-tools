@@ -1,3 +1,10 @@
+## [1.2.8](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.7...1.2.8) (2025-12-18)
+
+
+### Bug Fixes
+
+* ensure target folder exists ([#35](https://github.com/dankeboy36/get-arduino-tools/issues/35)) ([ae3ca64](https://github.com/dankeboy36/get-arduino-tools/commit/ae3ca64d1fa7c40b66a1999e1dfc3eefb31342b0))
+
 ## [1.2.7](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.6...1.2.7) (2025-12-18)
 
 
