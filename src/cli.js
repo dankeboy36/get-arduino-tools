@@ -88,15 +88,13 @@ function parse(args) {
         log('Failed to download tool', err)
         const errorMessage = err instanceof Error ? err.message : String(err)
         console.log(errorMessage)
-        if (err instanceof Error && 'code' in err) {
-          if (err.code === 'EEXIST') {
-            if (options.okIfExists) {
-              log('Tool already exists and is executable, skipping download')
-              return
-            } else if (options.force !== true) {
-              return program.error('Use --force to overwrite existing files')
-            }
-          }
+        if (
+          err instanceof Error &&
+          'code' in err &&
+          err.code === 'EEXIST' &&
+          options.force !== true
+        ) {
+          return program.error('Use --force to overwrite existing files')
         }
         return program.error(errorMessage)
       }
