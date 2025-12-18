@@ -1,3 +1,10 @@
+## [1.2.9](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.8...1.2.9) (2025-12-18)
+
+
+### Bug Fixes
+
+* disallow positional excess args ([#36](https://github.com/dankeboy36/get-arduino-tools/issues/36)) ([747c0d0](https://github.com/dankeboy36/get-arduino-tools/commit/747c0d033e5c851dd214c55de0f151f2e2b5b8e4))
+
 ## [1.2.8](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.7...1.2.8) (2025-12-18)
 
 
