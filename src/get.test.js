@@ -1,73 +1,76 @@
-const fs = require('node:fs/promises')
-const path = require('node:path')
-const { Readable } = require('node:stream')
-const { pipeline } = require('node:stream/promises')
+import fsSync from 'node:fs'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import stream from 'node:stream'
+import streamPromises from 'node:stream/promises'
 
-const { download } = require('./download')
-const { extract } = require('./extract')
-const { getTool } = require('./get')
-const { createLog } = require('./log')
-const {
-  createToolBasename,
-  getDownloadUrl,
-  isArduinoTool,
-  getArchiveType,
-} = require('./tools')
-const { ProgressCounter } = require('./progress')
+import downloadModule from './download.js'
+import extractModule from './extract.js'
+import { getTool } from './get.js'
+import logModule from './log.js'
+import progressModule from './progress.js'
+import toolsModule from './tools.js'
 
-jest.mock('node:fs')
-jest.mock('node:fs/promises')
-jest.mock('node:stream/promises')
-jest.mock('./download')
-jest.mock('./extract')
-jest.mock('./log')
-jest.mock('./tools')
+const { Readable, PassThrough } = stream
+const { ProgressCounter } = progressModule
+
+const actualGetDownloadUrl = toolsModule.getDownloadUrl
+const actualIsArduinoTool = toolsModule.isArduinoTool
 
 describe('get', () => {
-  const log = jest.fn()
+  const log = vi.fn()
   const mockTool = 'mockTool'
   const mockVersion = '1.0.0'
   const mockDestinationFolderPath = '/mock/destination'
   const mockPlatform = 'linux'
   const mockArch = 'x64'
   const mockData = '1, 2, 3, 4, 5'
+
   const mockExtractResult = {
     destinationPath: '/mock/extracted',
-    cleanup: jest.fn(),
-  }
-  const mockedFd = {
-    createWriteStream: jest.fn(),
+    cleanup: vi.fn(),
   }
 
+  const mockedFd = {
+    createWriteStream: vi.fn(() => new PassThrough()),
+  }
+
+  /** @type {import('vitest').MockInstance} */
+  let getDownloadUrlSpy
+  /** @type {import('vitest').MockInstance} */
+  let isArduinoToolSpy
+
   beforeEach(() => {
-    jest.mocked(createLog).mockReturnValue(log)
-    jest.mocked(download).mockResolvedValue({
+    vi.restoreAllMocks()
+
+    vi.spyOn(fsSync, 'createReadStream').mockReturnValue(Readable.from(''))
+
+    vi.spyOn(logModule, 'createLog').mockReturnValue(log)
+    vi.spyOn(downloadModule, 'download').mockResolvedValue({
       body: Readable.from(mockData),
       length: 111,
     })
-    jest.mocked(extract).mockResolvedValue(mockExtractResult)
-    jest
-      .mocked(getDownloadUrl)
+    vi.spyOn(extractModule, 'extract').mockResolvedValue(mockExtractResult)
+    vi.spyOn(streamPromises, 'pipeline').mockResolvedValue()
+
+    vi.spyOn(fs, 'open').mockResolvedValue(mockedFd)
+    vi.spyOn(fs, 'unlink').mockResolvedValue()
+
+    vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue(mockTool)
+    vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('zip')
+
+    getDownloadUrlSpy = vi
+      .spyOn(toolsModule, 'getDownloadUrl')
       .mockReturnValue('https://downloads.arduino.cc/mock')
-    jest.clearAllMocks()
-    jest.mocked(isArduinoTool).mockReturnValue(false)
-    jest.mocked(fs.open).mockReturnValue(mockedFd)
-    jest.mocked(fs.rm).mockResolvedValue(Promise.resolve())
-    jest.mocked(pipeline).mockReturnValue(Promise.resolve())
-    jest.mocked(createToolBasename).mockReturnValue(mockTool)
+    isArduinoToolSpy = vi
+      .spyOn(toolsModule, 'isArduinoTool')
+      .mockReturnValue(false)
   })
 
   it('should open a file, download, extract, and pipe the tool to the file', async () => {
-    jest.mocked(getDownloadUrl).mockImplementation((params) => {
-      const toolsModule = jest.requireActual('./tools')
-      return toolsModule.getDownloadUrl(params)
-    })
-    jest.mocked(isArduinoTool).mockImplementation((tool) => {
-      const toolsModule = jest.requireActual('./tools')
-      return toolsModule.isArduinoTool(tool)
-    })
-    jest.mocked(createToolBasename).mockReturnValue('arduino-cli')
-    jest.mocked(getArchiveType).mockReturnValue('zip')
+    getDownloadUrlSpy.mockImplementation(actualGetDownloadUrl)
+    isArduinoToolSpy.mockImplementation(actualIsArduinoTool)
+    toolsModule.createToolBasename.mockReturnValue('arduino-cli')
 
     const result = await getTool({
       tool: 'arduino-cli',
@@ -82,10 +85,11 @@ describe('get', () => {
       'wx',
       511
     )
-    expect(download).toHaveBeenCalledWith({
+    expect(downloadModule.download).toHaveBeenCalledWith({
       url: 'https://downloads.arduino.cc/arduino-cli/arduino-cli_1.0.0_Linux_64bit.tar.gz',
+      signal: undefined,
     })
-    expect(extract).toHaveBeenCalledWith(
+    expect(extractModule.extract).toHaveBeenCalledWith(
       expect.objectContaining({
         source: expect.any(Readable),
         archiveType: 'zip',
@@ -100,7 +104,7 @@ describe('get', () => {
 
   it('should throw an error if download fails', async () => {
     const err = new Error('download error')
-    jest.mocked(download).mockRejectedValue(err)
+    downloadModule.download.mockRejectedValue(err)
 
     await expect(
       getTool({
@@ -128,7 +132,7 @@ describe('get', () => {
 
   it('should throw an error if tool already exists and force is false', async () => {
     const err = Object.assign(new Error(), { code: 'EEXIST' })
-    jest.mocked(fs.open).mockRejectedValue(err)
+    fs.open.mockRejectedValue(err)
 
     await expect(
       getTool({

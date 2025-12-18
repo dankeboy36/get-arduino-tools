@@ -1,18 +1,16 @@
-const {
-  createToolBasename,
-  getArchiveType,
-  getDownloadUrl,
-} = require('./tools')
+import { createToolBasename, getArchiveType, getDownloadUrl } from './tools.js'
 
 describe('tools', () => {
   describe('createToolBasename', () => {
     it('should return tool name with .exe extension on Windows', () => {
+      // @ts-ignore
       expect(createToolBasename({ tool: 'fake', platform: 'win32' })).toBe(
         'fake.exe'
       )
     })
 
     it('should return tool name as is on non-Windows', () => {
+      // @ts-ignore
       expect(createToolBasename({ tool: 'fake', platform: 'not win32' })).toBe(
         'fake'
       )
@@ -60,6 +58,7 @@ describe('tools', () => {
         platform: 'win32',
         arch: 'x64',
       })
+      // @ts-ignore
       expect(() => getDownloadUrl(params)).toThrow(
         'Unsupported tool: unsupported-tool'
       )
@@ -150,6 +149,7 @@ describe('tools', () => {
         platform: 'unsupported-platform',
         arch: 'x64',
       })
+      // @ts-ignore
       expect(() => getDownloadUrl(params)).toThrow(
         'Unsupported platform: unsupported-platform, arch: x64'
       )
@@ -162,6 +162,7 @@ describe('tools', () => {
         platform: 'linux',
         arch: 'unsupported-arch',
       })
+      // @ts-ignore
       expect(() => getDownloadUrl(params)).toThrow(
         'Unsupported platform: linux, arch: unsupported-arch'
       )

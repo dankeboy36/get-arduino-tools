@@ -1,14 +1,14 @@
-const path = require('node:path')
+import { fileURLToPath } from 'node:url'
 
-const tmp = require('tmp-promise')
+import tmp from 'tmp-promise'
 
-const { execFile } = require('./execFile')
+import { execFile } from './execFile.js'
 
 /**
  * @typedef {Object} CliTestParams
  * @property {string} tool
  * @property {string} version
- * @property {(toolPath:string,expected:string)=>Promise<void>} expectVersion
+ * @property {(toolPath: string, expected: string) => Promise<void>} expectVersion
  */
 
 /** @type {CliTestParams['expectVersion']} */
@@ -23,7 +23,7 @@ const clangToolExpectVersion = async (toolPath, expected) => {
 }
 
 describe('cli', () => {
-  /** @type {Record<import('./tools').Tool, CliTestParams>} */
+  /** @type {Record<import('./tools.js').Tool, CliTestParams>} */
   const params = {
     'arduino-cli': {
       tool: 'arduino-cli',
@@ -64,14 +64,16 @@ describe('cli', () => {
     },
   }
   Object.values(params).map(({ tool, version, expectVersion }) =>
+    // eslint-disable-next-line vitest/expect-expect
     it(`should get the ${tool}`, async () => {
       const { path: tempDirPath } = await tmp.dir({
         keep: false,
         unsafeCleanup: true,
       })
 
+      const cliPath = fileURLToPath(new URL('../bin/cli.cjs', import.meta.url))
       const toolPath = await execFile(process.argv[0], [
-        path.join(__dirname, '../bin/cli'),
+        cliPath,
         'get',
         tool,
         version,

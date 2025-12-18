@@ -1,23 +1,19 @@
-const { createReadStream } = require('node:fs')
-const fs = require('node:fs/promises')
-const path = require('node:path')
-const { Transform } = require('node:stream')
-const { pipeline } = require('node:stream/promises')
+import fsSync from 'node:fs'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import stream from 'node:stream'
+import streamPromises from 'node:stream/promises'
 
-const { download } = require('./download')
-const { extract } = require('./extract')
-const { createLog } = require('./log')
-const { ProgressCounter } = require('./progress')
-const {
-  createToolBasename,
-  getArchiveType,
-  getDownloadUrl,
-  tools,
-} = require('./tools')
+import downloadModule from './download.js'
+import extractModule from './extract.js'
+import logModule from './log.js'
+import progressModule from './progress.js'
+import toolsModule from './tools.js'
 
-/**
- * @type {typeof import('./index').getTool}
- */
+const { Transform } = stream
+const { ProgressCounter } = progressModule
+
+/** @type {typeof import('./index.js').getTool} */
 async function getTool({
   tool,
   version,
@@ -28,27 +24,25 @@ async function getTool({
   onProgress = () => {},
   signal,
 }) {
-  const log = createLog('getTool')
+  const log = logModule.createLog('getTool')
 
-  const url = getDownloadUrl({
+  const url = toolsModule.getDownloadUrl({
     tool,
     version,
     platform,
     arch,
   })
 
-  /** @type {(()=>Promise<void>)|undefined} */
+  /** @type {(() => Promise<void>) | undefined} */
   let toCleanupOnError
 
-  const basename = createToolBasename({ tool, platform })
+  const basename = toolsModule.createToolBasename({ tool, platform })
   log('Basename for', tool, platform, 'is', basename)
   const destinationPath = path.join(destinationFolderPath, basename)
   log('Destination path', destinationPath)
-  const flags = force
-    ? // opens for write truncates the files
-      'w'
-    : // creates the file on open fails when already exists
-      'wx'
+  // w opens for write truncates the files
+  // wx  creates the file on open fails when already exists
+  const flags = force ? 'w' : 'wx'
   const mode = 511 // decimal equivalent of '0o777'
 
   try {
@@ -59,32 +53,32 @@ async function getTool({
     }
     const destination = destinationFd.createWriteStream()
 
-    const downloadResult = await download({ url, signal })
+    const downloadResult = await downloadModule.download({ url, signal })
 
     const counter = new ProgressCounter(downloadResult.length)
     counter.on('progress', onProgress)
 
-    const archiveType = getArchiveType({ tool, platform })
+    const archiveType = toolsModule.getArchiveType({ tool, platform })
     log('Got archive type', archiveType, 'from', tool, platform)
-    const extractResult = await extract({
-      source: downloadResult.body.pipe(
-        new Transform({
-          transform: (chunk, _, next) => {
-            counter.onDownload(chunk.length)
-            next(null, chunk)
-          },
-        })
-      ),
+
+    const transformWithProgress = new Transform({
+      transform: (chunk, _, next) => {
+        counter.onDownload(chunk.length)
+        next(null, chunk)
+      },
+    })
+    const extractResult = await extractModule.extract({
+      source: downloadResult.body.pipe(transformWithProgress),
       archiveType,
       counter,
     })
 
     const sourcePath = path.join(extractResult.destinationPath, basename)
-    const source = createReadStream(sourcePath)
+    const source = fsSync.createReadStream(sourcePath)
 
     try {
       log('Piping from', sourcePath, 'to', destinationPath)
-      await pipeline(source, destination, { signal })
+      await streamPromises.pipeline(source, destination, { signal })
       log('Piping completed')
       toCleanupOnError = undefined
     } finally {
@@ -100,7 +94,10 @@ async function getTool({
   }
 }
 
-module.exports = {
+export { getTool }
+export const tools = toolsModule.tools
+
+export default {
   tools,
   getTool,
 }

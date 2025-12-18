@@ -1,18 +1,21 @@
-const { debug } = require('debug')
+import debugModule from 'debug'
 
-const { createLog } = require('./log')
+import { createLog } from './log.js'
 
-const mockLog = jest.fn()
-jest.mock('debug', () => ({ debug: jest.fn(() => mockLog) }))
+const mockLog = /** @type {any} */ (vi.fn())
+const debugSpy = vi
+  .spyOn(debugModule, 'debug')
+  .mockImplementation(() => mockLog)
 
 describe('log', () => {
   beforeEach(() => {
     mockLog.mockClear()
+    debugSpy.mockClear()
   })
 
   it('should create a namespaced logger', () => {
     createLog('test')
-    expect(debug).toHaveBeenCalledWith('gat:test')
+    expect(debugSpy).toHaveBeenCalledWith('gat:test')
   })
 
   it('should log', () => {

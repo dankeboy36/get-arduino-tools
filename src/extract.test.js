@@ -1,56 +1,42 @@
-const fs = require('node:fs/promises')
-const { Readable } = require('node:stream')
-const { pipeline } = require('node:stream/promises')
+import stream from 'node:stream'
+import streamPromises from 'node:stream/promises'
 
-const { extract: extractTar } = require('tar-stream')
-const { dir } = require('tmp-promise')
-const { Parse: ParseZip } = require('unzip-stream')
+import tar from 'tar-stream'
+import tmp from 'tmp-promise'
+import unzip from 'unzip-stream'
 
-const { extract } = require('./extract')
-const { createLog } = require('./log')
+import { extract } from './extract.js'
+import logModule from './log.js'
 
-jest.mock('node:fs/promises')
-jest.mock('node:stream/promises')
-
-jest.mock('tmp-promise')
-jest.mock('tar-stream')
-jest.mock('unzip-stream')
-jest.mock('unbzip2-stream')
-
-jest.mock('node:os', () => ({
-  tmpdir: jest.fn().mockReturnValue('/tmp'),
-}))
-
-jest.mock('./log.js', () => ({
-  createLog: jest.fn(),
-}))
+const { Readable } = stream
 
 describe('extract', () => {
   const mockTempDir = '/tmp/gat-12345'
+  /** @type {ReturnType<typeof import('./log').createLog>} */
   let log
-  let mockTarExtract
+  /** @type {ReturnType<typeof import('tar-stream').extract>} */
+  let mockTarExtractStream
+  /** @type {ReturnType<typeof import('unzip-stream').Parse>} */
   let mockParseZip
-  let mockBzip2
+  /** @type {import('tmp-promise').DirectoryResult['cleanup']} */
   let mockCleanup
 
   beforeEach(() => {
-    log = jest.fn()
-    mockTarExtract = {
-      on: jest.fn(),
-    }
-    mockParseZip = jest.fn()
-    mockBzip2 = jest.fn()
-    mockCleanup = jest.fn()
+    vi.restoreAllMocks()
 
-    jest
-      .mocked(dir)
-      .mockResolvedValue({ path: mockTempDir, cleanup: mockCleanup })
+    log = vi.fn()
+    mockTarExtractStream = { on: vi.fn() }
+    mockParseZip = vi.fn()
+    mockCleanup = vi.fn()
 
-    jest.mocked(createLog).mockReturnValue(log)
-    jest.mocked(extractTar).mockReturnValue(mockTarExtract)
-    jest.mocked(ParseZip).mockReturnValue(mockParseZip)
-    jest.mocked(pipeline).mockResolvedValue()
-    jest.clearAllMocks()
+    vi.spyOn(tmp, 'dir').mockResolvedValue({
+      path: mockTempDir,
+      cleanup: mockCleanup,
+    })
+    vi.spyOn(logModule, 'createLog').mockReturnValue(log)
+    vi.spyOn(tar, 'extract').mockReturnValue(mockTarExtractStream)
+    vi.spyOn(unzip, 'Parse').mockReturnValue(mockParseZip)
+    vi.spyOn(streamPromises, 'pipeline').mockResolvedValue()
   })
 
   it('should extract buffer to a temporary directory', async () => {
@@ -58,13 +44,13 @@ describe('extract', () => {
 
     const result = await extract({ source, archiveType: 'zip' })
 
-    expect(dir).toHaveBeenCalledWith({
+    expect(tmp.dir).toHaveBeenCalledWith({
       prefix: 'gat-',
       unsafeCleanup: true,
       tries: 3,
       keep: false,
     })
-    expect(ParseZip).toHaveBeenCalled()
+    expect(unzip.Parse).toHaveBeenCalled()
     expect(result.destinationPath).toBe(mockTempDir)
   })
 
@@ -73,7 +59,7 @@ describe('extract', () => {
 
     const result = await extract({ source, archiveType: 'gzip' })
 
-    expect(extractTar).toHaveBeenCalled()
+    expect(tar.extract).toHaveBeenCalled()
     expect(result.destinationPath).toBe(mockTempDir)
   })
 
@@ -82,22 +68,21 @@ describe('extract', () => {
 
     const result = await extract({ source, archiveType: 'bzip2' })
 
-    expect(extractTar).toHaveBeenCalled()
+    expect(tar.extract).toHaveBeenCalled()
     expect(result.destinationPath).toBe(mockTempDir)
   })
 
   it('should throw an error for unsupported archive type', async () => {
     const source = Readable.from([1, 2, 3])
 
-    await expect(
-      extract({ source, archiveType: 'unsupported' })
-    ).rejects.toThrow('Unsupported archive type: unsupported')
+    const archiveType = /** @type {any} */ ('unsupported')
+    await expect(extract({ source, archiveType })).rejects.toThrow(
+      'Unsupported archive type: unsupported'
+    )
   })
 
   it('should cleanup the extracted files (on success)', async () => {
     const source = Readable.from([1, 2, 3])
-
-    jest.mocked(fs.rm).mockResolvedValue()
 
     const result = await extract({ source, archiveType: 'zip' })
     await result.cleanup()
@@ -108,7 +93,7 @@ describe('extract', () => {
   it('should cleanup the extracted files (on error)', async () => {
     const source = Readable.from([1, 2, 3])
     const error = new Error('decompress error')
-    jest.mocked(ParseZip).mockImplementation(() => {
+    vi.spyOn(unzip, 'Parse').mockImplementation(() => {
       throw error
     })
 
@@ -127,7 +112,7 @@ describe('extract', () => {
 
     const result = await extract({ source, archiveType: 'zip' })
 
-    expect(ParseZip).toHaveBeenCalled()
+    expect(unzip.Parse).toHaveBeenCalled()
     expect(result.destinationPath).toBe(mockTempDir)
     expect(log).toHaveBeenCalledWith('extracting to ', mockTempDir)
   })
@@ -137,7 +122,7 @@ describe('extract', () => {
 
     const result = await extract({ source, archiveType: 'bzip2' })
 
-    expect(extractTar).toHaveBeenCalled()
+    expect(tar.extract).toHaveBeenCalled()
     expect(result.destinationPath).toBe(mockTempDir)
     expect(log).toHaveBeenCalledWith('extracting to ', mockTempDir)
   })

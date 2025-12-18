@@ -4,7 +4,10 @@
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true
   },
-  "eslint.format.enable": true,
+  "eslint.format.enable": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
   "js/ts.implicitProjectConfig.checkJs": true,
   "js/ts.implicitProjectConfig.module": "NodeNext"
 }

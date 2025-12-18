@@ -1,32 +1,33 @@
-const { createWriteStream } = require('node:fs')
-const fs = require('node:fs/promises')
-const path = require('node:path')
-const { Readable, Transform } = require('node:stream')
-const { pipeline } = require('node:stream/promises')
-const zlib = require('node:zlib')
+import fsSync from 'node:fs'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import stream from 'node:stream'
+import streamPromises from 'node:stream/promises'
+import zlib from 'node:zlib'
 
-const tar = require('tar-stream')
-const tmp = require('tmp-promise')
-const bz2 = require('unbzip2-stream')
-const unzip = require('unzip-stream')
+import tar from 'tar-stream'
+import tmp from 'tmp-promise'
+import bz2 from 'unbzip2-stream'
+import unzip from 'unzip-stream'
 
-const { createLog } = require('./log')
+import logModule from './log.js'
+
+const { Transform } = stream
 
 /**
  * @typedef {Object} ExtractParams
- * @property {Readable} source
- * @property {import('./tools').ArchiveType} archiveType
- * @property {import('./progress').ProgressCounter} [counter]
+ * @property {import('node:stream').Readable} source
+ * @property {import('./tools.js').ArchiveType} archiveType
+ * @property {import('./progress.js').ProgressCounter} [counter]
  *
  * @typedef {Object} ExtractResult
  * @property {string} destinationPath
- * @property {()=>Promise<void>} cleanup
- *
+ * @property {() => Promise<void>} cleanup
  * @param {ExtractParams} params
  * @returns {Promise<ExtractResult>}
  */
-async function extract({ source, archiveType, counter }) {
-  const log = createLog('extract')
+export async function extract({ source, archiveType, counter }) {
+  const log = logModule.createLog('extract')
 
   const { path: destinationPath, cleanup } = await tmp.dir({
     prefix: 'gat-',
@@ -68,8 +69,16 @@ async function extract({ source, archiveType, counter }) {
   }
 }
 
+/**
+ * @typedef {Object} ExtractParams0
+ * @property {import('node:stream').Readable} source
+ * @property {string} destinationPath
+ * @property {import('./progress.js').ProgressCounter} [counter]
+ */
+
+/** @param {ExtractParams0} params */
 async function extractZip({ source, destinationPath, counter }) {
-  const log = createLog('extractZip')
+  const log = logModule.createLog('extractZip')
 
   const invalidEntries = []
   const transformEntry = new Transform({
@@ -87,29 +96,29 @@ async function extractZip({ source, destinationPath, counter }) {
       }
       const destinationFilePath = path.join(destinationPath, entryPath)
       log('extracting', destinationFilePath)
-      await pipeline(
-        entry,
-        new Transform({
-          transform: (chunk, _, next) => {
-            counter.onExtract(chunk.length)
-            next(null, chunk)
-          },
-        }),
-        createWriteStream(destinationFilePath)
-      )
+      const transform = new Transform({
+        transform: (chunk, _, next) => {
+          counter?.onExtract(chunk.length)
+          next(null, chunk)
+        },
+      })
+      const destination = fsSync.createWriteStream(destinationFilePath)
+      await streamPromises.pipeline(entry, transform, destination)
+
       next()
     },
   })
 
-  await pipeline(source, unzip.Parse(), transformEntry)
+  await streamPromises.pipeline(source, unzip.Parse(), transformEntry)
   if (invalidEntries.length) {
     throw new Error('Invalid archive entry')
   }
   log('extracting to ', destinationPath)
 }
 
+/** @param {ExtractParams0} params */
 async function extractGzipTar({ source, destinationPath, counter }) {
-  const log = createLog('extractGzipTar')
+  const log = logModule.createLog('extractGzipTar')
   return extractTar({
     source,
     decompress: zlib.createGunzip(),
@@ -119,8 +128,9 @@ async function extractGzipTar({ source, destinationPath, counter }) {
   })
 }
 
+/** @param {ExtractParams0} params */
 async function extractBzip2Tar({ source, destinationPath, counter }) {
-  const log = createLog('extractBzip2Tar')
+  const log = logModule.createLog('extractBzip2Tar')
   return extractTar({
     source,
     decompress: bz2(),
@@ -131,6 +141,14 @@ async function extractBzip2Tar({ source, destinationPath, counter }) {
   })
 }
 
+/**
+ * @typedef {Object} ExtractTar
+ * @property {number} [strip=0] Default is `0`
+ * @property {ReturnType<typeof import('./log.js').createLog>} log
+ * @property {import('node:stream').Transform} decompress
+ */
+
+/** @param {ExtractParams0 & ExtractTar} params */
 async function extractTar({
   source,
   decompress,
@@ -151,7 +169,9 @@ async function extractTar({
       return
     }
 
-    counter?.onEnter(header.size)
+    if (header.size) {
+      counter?.onEnter(header.size)
+    }
     let entryPath = header.name
     if (strip > 0) {
       // the path is always POSIX inside the tar. For example, "folder/fake-tool"
@@ -172,28 +192,28 @@ async function extractTar({
     fs.mkdir(path.dirname(destinationFilePath), { recursive: true })
       .then(() => {
         log('extracting', destinationFilePath)
-        return pipeline(
+        return streamPromises.pipeline(
           stream,
           new Transform({
             transform: (chunk, _, next) => {
-              counter.onExtract(chunk.length)
+              counter?.onExtract(chunk.length)
               next(null, chunk)
             },
           }),
-          createWriteStream(destinationFilePath)
+          fsSync.createWriteStream(destinationFilePath)
         )
       })
       .then(() => next())
       .catch(next)
   })
 
-  await pipeline(source, decompress, extract)
+  await streamPromises.pipeline(source, decompress, extract)
   if (invalidEntries.length) {
     throw new Error('Invalid archive entry')
   }
   log('extracted to', destinationPath)
 }
 
-module.exports = {
+export default {
   extract,
 }

@@ -1,23 +1,25 @@
-const { Readable } = require('node:stream')
-const { ReadableStream } = require('node:stream/web')
+import stream from 'node:stream'
+import webStream from 'node:stream/web'
 
-const { xhr } = require('request-light-stream')
+import requestLightStream from 'request-light-stream'
 
-const { download } = require('./download')
+import { download } from './download.js'
 
-const mockedXhr = jest.mocked(xhr)
-
-jest.mock('request-light-stream', () => ({
-  ...jest.requireActual('request-light-stream'),
-  xhr: jest.fn(),
-}))
+const { Readable } = stream
+const { ReadableStream } = webStream
 
 describe('download', () => {
   const url = ''
-  const mockXhr = jest.fn()
+  const mockXhr = vi.fn()
+  /** @type {import('vitest').MockInstance} */
+  let xhrSpy
 
   beforeAll(() => {
-    mockedXhr.mockImplementation(mockXhr)
+    xhrSpy = vi.spyOn(requestLightStream, 'xhr').mockImplementation(mockXhr)
+  })
+
+  afterAll(() => {
+    xhrSpy.mockRestore()
   })
 
   beforeEach(() => {
@@ -71,7 +73,7 @@ describe('download', () => {
     })
 
     it('error with falsy props', async () => {
-      /** @type {Record<string,any>} */
+      /** @type {Record<string, any>} */
       const mockError = new Error('some error')
       mockError.responseText = ''
       mockError.status = 0
@@ -87,6 +89,13 @@ describe('download', () => {
       await expect(download({ url })).rejects.toThrow(/some error/gi)
     })
 
+    it('not an error', async () => {
+      const mockError = 'not an error'
+      mockXhr.mockRejectedValue(mockError)
+
+      await expect(download({ url })).rejects.toThrow(/not an error/gi)
+    })
+
     it('should handle stream that errors with abort error', async () => {
       const data1 = 'first chunk'
       const data2 = 'second chunk'
@@ -100,11 +109,40 @@ describe('download', () => {
 
       expect(result.body).toBeInstanceOf(Readable)
       try {
-        for await (const _ of result.body) {
+        let bytesRead = 0
+        for await (const chunk of result.body) {
+          bytesRead += chunk.length
         }
-        fail('expected broken readable')
+        throw new Error(`expected broken readable, bytesRead=${bytesRead}`)
       } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+        // @ts-ignore
         expect(error.name).toBe('AbortError')
+      }
+    })
+
+    it('should handle stream that errors unexpectedly', async () => {
+      const data1 = 'first chunk'
+      const data2 = 'second chunk'
+      const body = createReadStream(
+        [data1, data2],
+        'unexpected error' // not an Error
+      )
+      mockXhr.mockResolvedValue({ body, status: 200 })
+
+      const result = await download({ url })
+
+      expect(result.body).toBeInstanceOf(Readable)
+      try {
+        let bytesRead = 0
+        for await (const chunk of result.body) {
+          bytesRead += chunk.length
+        }
+        throw new Error(`expected broken readable, bytesRead=${bytesRead}`)
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+        // @ts-ignore
+        expect(error.message).toBe('unexpected error')
       }
     })
   })
@@ -178,8 +216,8 @@ describe('download', () => {
   })
 
   /**
-   * @param {string|string[]} chunk
-   * @param {Error|undefined} [error=undefined]
+   * @param {string | string[]} chunk
+   * @param {object | undefined} [error=undefined] Default is `undefined`
    */
   function createReadStream(chunk, error = undefined) {
     const chunks = Array.isArray(chunk) ? chunk : [chunk]

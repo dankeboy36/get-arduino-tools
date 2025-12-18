@@ -1,5 +1,9 @@
-const { getTool } = require('./get')
+import { getTool } from './get.js'
+import { tools } from './tools.js'
 
-module.exports = {
+export { getTool, tools }
+
+export default {
   getTool,
+  tools,
 }

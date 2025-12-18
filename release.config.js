@@ -1,5 +1,8 @@
+// @ts-check
+
 /** @type {import('semantic-release').Options} */
-module.exports = {
+export default {
+  // eslint-disable-next-line no-template-curly-in-string
   tagFormat: '${version}',
   branches: ['main'],
   plugins: [
@@ -13,6 +16,7 @@ module.exports = {
       '@semantic-release/exec',
       {
         publishCmd:
+          // eslint-disable-next-line no-template-curly-in-string
           'echo "release_version=${nextRelease.version}" >> $GITHUB_OUTPUT',
       },
     ],

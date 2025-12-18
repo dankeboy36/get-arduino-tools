@@ -1,31 +1,38 @@
-const { enable } = require('debug')
-const ProgressBar = require('progress')
-const waitFor = require('@sadams/wait-for-expect')
+import debugModule from 'debug'
+import waitFor from 'wait-for-expect'
 
-const { parse } = require('./cli')
-const { getTool } = require('./get')
+import { parse } from './cli.js'
+import getModule from './get.js'
 
-jest.mock('debug', () => ({
-  __esModule: true,
-  ...jest.requireActual('debug'),
-  enable: jest.fn(),
-}))
-jest.mock('progress')
+const { tick, ProgressBarMock } = vi.hoisted(() => {
+  const tick = vi.fn()
+  const ProgressBarMock = vi.fn(function ProgressBar() {
+    return { tick }
+  })
+  return { tick, ProgressBarMock }
+})
 
-jest.mock('./get')
+vi.mock('progress', () => ({ default: ProgressBarMock }))
+
+/** @type {NodeJS.Process['exit']} */
+// @ts-ignore
+const noopExit = () => {
+  // never
+}
 
 describe('cli', () => {
   let mockLog
   let consoleSpy
   let exitSpy
+  let getToolSpy
+  let enableSpy
 
   beforeAll(() => {
-    mockLog = jest.fn()
-    exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {})
-    consoleSpy = jest
+    mockLog = vi.fn()
+    exitSpy = vi.spyOn(process, 'exit').mockImplementation(noopExit)
+    consoleSpy = vi
       .spyOn(console, 'log')
       .mockImplementation((args) => mockLog(args))
-    jest.mocked(getTool).mockResolvedValue({ toolPath: '' })
   })
 
   afterAll(() => {
@@ -34,14 +41,29 @@ describe('cli', () => {
   })
 
   beforeEach(() => {
-    jest.clearAllMocks()
-    jest.mocked(getTool).mockResolvedValue({ toolPath: '' })
+    vi.restoreAllMocks()
+
+    mockLog.mockClear()
+
+    // Keep the console/process spies from `beforeAll`
+    exitSpy = vi.spyOn(process, 'exit').mockImplementation(noopExit)
+    consoleSpy = vi
+      .spyOn(console, 'log')
+      .mockImplementation((args) => mockLog(args))
+
+    tick.mockClear()
+    ProgressBarMock.mockClear()
+
+    getToolSpy = vi
+      .spyOn(getModule, 'getTool')
+      .mockResolvedValue({ toolPath: '' })
+    enableSpy = vi.spyOn(debugModule, 'enable').mockImplementation(() => {})
   })
 
   it('should get the data', () => {
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1'])
 
-    expect(getTool).toHaveBeenCalledWith({
+    expect(getToolSpy).toHaveBeenCalledWith({
       tool: 'arduino-cli',
       version: '1.1.1',
       destinationFolderPath: process.cwd(),
@@ -60,9 +82,7 @@ describe('cli', () => {
   it('should provide progress', async () => {
     const currents = [0, 5, 5, 6, 10]
 
-    const tick = jest.fn()
-    jest.mocked(ProgressBar).mockImplementation(() => ({ tick }))
-    jest.mocked(getTool).mockImplementation(async ({ onProgress }) => {
+    getToolSpy.mockImplementation(async ({ onProgress }) => {
       currents.forEach((current) => onProgress?.({ current }))
       return { toolPath: '' }
     })
@@ -77,15 +97,13 @@ describe('cli', () => {
   })
 
   it('should enable the log with the --verbose flag', () => {
-    jest.mocked(enable).mockImplementation(() => {})
-
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '--verbose'])
 
-    expect(enable).toHaveBeenCalledWith('gat:*')
+    expect(enableSpy).toHaveBeenCalledWith('gat:*')
   })
 
   it('should omit the error stacktrace from the CLI output', async () => {
-    jest.mocked(getTool).mockRejectedValueOnce(Error('my error'))
+    getToolSpy.mockRejectedValueOnce(Error('my error'))
 
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1'])
 
@@ -93,11 +111,9 @@ describe('cli', () => {
   })
 
   it('should prompt --force when errors with EEXIST', async () => {
-    jest
-      .mocked(getTool)
-      .mockRejectedValueOnce(
-        Object.assign(new Error('my error'), { code: 'EEXIST' })
-      )
+    getToolSpy.mockRejectedValueOnce(
+      Object.assign(new Error('my error'), { code: 'EEXIST' })
+    )
 
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1'])
 
@@ -107,7 +123,7 @@ describe('cli', () => {
   })
 
   it('should print the reason as is when has no message', async () => {
-    jest.mocked(getTool).mockRejectedValueOnce('just string')
+    getToolSpy.mockRejectedValueOnce('just string')
 
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1'])
 
@@ -125,7 +141,7 @@ describe('cli', () => {
       'path/to/out',
     ])
 
-    expect(getTool).toHaveBeenCalledWith(
+    expect(getToolSpy).toHaveBeenCalledWith(
       expect.objectContaining({ destinationFolderPath: 'path/to/out' })
     )
   })
@@ -141,7 +157,7 @@ describe('cli', () => {
       'path/to/out',
     ])
 
-    expect(getTool).toHaveBeenCalledWith(
+    expect(getToolSpy).toHaveBeenCalledWith(
       expect.objectContaining({ destinationFolderPath: 'path/to/out' })
     )
   })
@@ -149,7 +165,7 @@ describe('cli', () => {
   it('should override the platform with --platform flag', () => {
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '-p', 'bar'])
 
-    expect(getTool).toHaveBeenCalledWith(
+    expect(getToolSpy).toHaveBeenCalledWith(
       expect.objectContaining({ platform: 'bar' })
     )
   })
@@ -157,7 +173,7 @@ describe('cli', () => {
   it('should override the platform with -p', () => {
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '-p', 'foo'])
 
-    expect(getTool).toHaveBeenCalledWith(
+    expect(getToolSpy).toHaveBeenCalledWith(
       expect.objectContaining({ platform: 'foo' })
     )
   })
@@ -165,7 +181,7 @@ describe('cli', () => {
   it('should override the platform with --platform flag', () => {
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '-p', 'bar'])
 
-    expect(getTool).toHaveBeenCalledWith(
+    expect(getToolSpy).toHaveBeenCalledWith(
       expect.objectContaining({ platform: 'bar' })
     )
   })
@@ -173,7 +189,7 @@ describe('cli', () => {
   it('should override the arch with -a flag', () => {
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '-a', 'mirr'])
 
-    expect(getTool).toHaveBeenCalledWith(
+    expect(getToolSpy).toHaveBeenCalledWith(
       expect.objectContaining({ arch: 'mirr' })
     )
   })
@@ -189,7 +205,7 @@ describe('cli', () => {
       'murr',
     ])
 
-    expect(getTool).toHaveBeenCalledWith(
+    expect(getToolSpy).toHaveBeenCalledWith(
       expect.objectContaining({ arch: 'murr' })
     )
   })
@@ -197,7 +213,7 @@ describe('cli', () => {
   it('should override the force with -f flag', () => {
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '-f'])
 
-    expect(getTool).toHaveBeenCalledWith(
+    expect(getToolSpy).toHaveBeenCalledWith(
       expect.objectContaining({ force: true })
     )
   })
@@ -205,7 +221,7 @@ describe('cli', () => {
   it('should override the force with --force flag', () => {
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '--force'])
 
-    expect(getTool).toHaveBeenCalledWith(
+    expect(getToolSpy).toHaveBeenCalledWith(
       expect.objectContaining({ force: true })
     )
   })
@@ -213,17 +229,15 @@ describe('cli', () => {
   it('should enable silent mode with the --silent flag', () => {
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '--silent'])
 
-    expect(getTool).toHaveBeenCalledWith(
+    expect(getToolSpy).toHaveBeenCalledWith(
       expect.objectContaining({ silent: true })
     )
   })
 
   it('should ignore EEXIST if --ok-if-exists is set', async () => {
-    jest
-      .mocked(getTool)
-      .mockRejectedValueOnce(
-        Object.assign(new Error('my error'), { code: 'EEXIST' })
-      )
+    getToolSpy.mockRejectedValueOnce(
+      Object.assign(new Error('my error'), { code: 'EEXIST' })
+    )
 
     parse([
       'node',
@@ -240,13 +254,23 @@ describe('cli', () => {
   })
 
   it('should rethrow EEXIST if --ok-if-exists is not but --force is set', async () => {
-    jest
-      .mocked(getTool)
-      .mockRejectedValueOnce(
-        Object.assign(new Error('my error'), { code: 'EEXIST' })
-      )
+    getToolSpy.mockRejectedValueOnce(
+      Object.assign(new Error('my error'), { code: 'EEXIST' })
+    )
 
     parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1', '--force'])
+
+    await waitFor(() => expect(mockLog).toHaveBeenCalledWith('my error'))
+
+    expect(exitSpy).toHaveBeenCalledWith(1)
+  })
+
+  it('should rethrow any code', async () => {
+    getToolSpy.mockRejectedValueOnce(
+      Object.assign(new Error('my error'), { code: 'ESOMEERRORCODE' })
+    )
+
+    parse(['node', 'script.js', 'get', 'arduino-cli', '1.1.1'])
 
     await waitFor(() => expect(mockLog).toHaveBeenCalledWith('my error'))
 
