@@ -115,7 +115,7 @@ To set up the development environment, follow these steps:
 5. Run the CLI tool locally:
 
    ```bash
-   node bin/cli.js get <tool> <version> [options]
+   node bin/cli.cjs get <tool> <version> [options]
    ```
 
 6. To run the integration tests:

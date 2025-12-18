@@ -56,11 +56,18 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Load secrets from 1Password
+        id: load_secrets
+        uses: 1password/load-secrets-action@v3
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          GITHUB_TOKEN: op://cicd_dankeboy36/GITHUB_TOKEN/credential
+          NPM_TOKEN: op://cicd_dankeboy36/NPM_TOKEN/credential
       - name: Release
         id: release
         run: npm run release
         env:
-          GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.load_secrets.outputs.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ steps.load_secrets.outputs.NPM_TOKEN }}
     outputs:
       release_version: ${{ steps.release.outputs.release_version }}

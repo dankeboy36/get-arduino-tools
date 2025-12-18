@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import { Command } from 'commander'
 import debug from 'debug'
 import ProgressBar from 'progress'
@@ -58,6 +60,16 @@ function parse(args) {
             bar.tick(diff)
           }
         }
+      }
+
+      if (
+        options.destinationFolderPath &&
+        !path.isAbsolute(options.destinationFolderPath)
+      ) {
+        options.destinationFolderPath = path.resolve(
+          process.cwd(),
+          options.destinationFolderPath
+        )
       }
 
       try {
