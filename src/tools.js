@@ -1,34 +1,35 @@
-const { posix } = require('node:path')
+import path from 'node:path'
 
-const { createLog } = require('./log')
+import logModule from './log.js'
 
 /**
- * @typedef {import('./index').Tool} Tool
- * @typedef {import('./index').ArduinoTool} ArduinoTool
+ * @typedef {import('./index.js').Tool} Tool
+ *
+ * @typedef {import('./index.js').ArduinoTool} ArduinoTool
  */
 
-const arduinoTools = [
+const arduinoTools = /** @type {const} */ ([
   'arduino-cli',
   'arduino-language-server',
   'arduino-fwuploader',
   'arduino-lint',
-]
-const clangTools = ['clangd', 'clang-format']
+])
+const clangTools = /** @type {const} */ (['clangd', 'clang-format'])
 const tools = /** @type {readonly Tool[]} */ ([...arduinoTools, ...clangTools])
 
 /**
  * @param {Tool} tool
  * @returns {tool is ArduinoTool}
  */
-function isArduinoTool(tool) {
-  return arduinoTools.includes(tool)
+export function isArduinoTool(tool) {
+  return arduinoTools.includes(/** @type {any} */ (tool))
 }
 
 /**
- * @param {{tool:Tool, platform:NodeJS.Platform}} params
- * @returns string
+ * @param {{ tool: Tool; platform: NodeJS.Platform }} params
+ * @returns String
  */
-function createToolBasename({ tool, platform }) {
+export function createToolBasename({ tool, platform }) {
   return `${tool}${platform === 'win32' ? '.exe' : ''}`
 }
 
@@ -39,12 +40,11 @@ function createToolBasename({ tool, platform }) {
  * @property {NodeJS.Platform} platform
  * @property {NodeJS.Architecture} arch
  * @property {AbortSignal} [signal]
- *
  * @param {GetDownloadUrlParams} params
  * @returns {string}
  */
-function getDownloadUrl({ tool, version, platform, arch }) {
-  const log = createLog('getDownloadUrl')
+export function getDownloadUrl({ tool, version, platform, arch }) {
+  const log = logModule.createLog('getDownloadUrl')
 
   log('Getting tool name for', tool, version, platform, arch)
   if (!tools.includes(tool)) {
@@ -62,13 +62,14 @@ function getDownloadUrl({ tool, version, platform, arch }) {
 
   const downloadUrl = new URL('https://downloads.arduino.cc')
   const category = isArduinoTool(tool) ? tool : 'tools'
-  downloadUrl.pathname = posix.join(category, remoteFilename)
+  downloadUrl.pathname = path.posix.join(category, remoteFilename)
   const url = downloadUrl.toString()
   log('URL', url)
 
   return url
 }
 
+/** @param {{ platform: NodeJS.Platform; arch: NodeJS.Architecture }} params */
 function getToolSuffix({ platform, arch }) {
   if (platform === 'darwin') {
     if (arch === 'arm64') {
@@ -90,9 +91,7 @@ function getToolSuffix({ platform, arch }) {
   throw new Error(`Unsupported platform: ${platform}, arch: ${arch}`)
 }
 
-const archiveTypes = /** @type {const} */ (['zip', 'gzip', 'bzip2'])
-
-/** @typedef {typeof archiveTypes[number]} ArchiveType */
+/** @typedef {'zip' | 'gzip' | 'bzip2'} ArchiveType */
 
 /** @type {Record<ArchiveType, string>} */
 const extMapping = {
@@ -102,10 +101,10 @@ const extMapping = {
 }
 
 /**
- * @param {{tool:Tool, platform: NodeJS.Platform}} params
- * @return {ArchiveType}
+ * @param {{ tool: Tool; platform: NodeJS.Platform }} params
+ * @returns {ArchiveType}
  */
-function getArchiveType({ tool, platform }) {
+export function getArchiveType({ tool, platform }) {
   if (!isArduinoTool(tool)) {
     return 'bzip2'
   }
@@ -117,11 +116,14 @@ function getArchiveType({ tool, platform }) {
   }
 }
 
+/** @param {{ tool: Tool; platform: NodeJS.Platform }} params */
 function getArchiveExtension({ tool, platform }) {
   return extMapping[getArchiveType({ tool, platform })]
 }
 
-module.exports = {
+export { tools }
+
+export default {
   tools,
   isArduinoTool,
   createToolBasename,

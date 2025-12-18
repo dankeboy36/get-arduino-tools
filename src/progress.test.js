@@ -1,10 +1,10 @@
-const { ProgressCounter } = require('./progress')
+import { ProgressCounter } from './progress.js'
 
 describe('progress', () => {
   describe('ProgressCounter', () => {
     it('handles when toDownloadBytes is 0', () => {
       const counter = new ProgressCounter(0)
-      const onProgress = jest.fn()
+      const onProgress = vi.fn()
       counter.on('progress', onProgress)
 
       counter.onDownload(10)

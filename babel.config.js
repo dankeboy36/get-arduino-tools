@@ -1,5 +1,7 @@
+// @ts-check
+
 /** @type {import('@babel/core').TransformOptions} */
-module.exports = {
+export default {
   presets: [
     [
       '@babel/preset-env',

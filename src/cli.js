@@ -1,15 +1,13 @@
-const { Command } = require('commander')
-const { enable } = require('debug')
-const ProgressBar = require('progress')
+import { Command } from 'commander'
+import debug from 'debug'
+import ProgressBar from 'progress'
 
-const { getTool, tools } = require('./get')
-const { createLog } = require('./log')
+import getModule from './get.js'
+import logModule from './log.js'
 
-/**
- * @param {readonly string[]} args
- */
+/** @param {readonly string[]} args */
 function parse(args) {
-  const log = createLog('cli')
+  const log = logModule.createLog('cli')
   log('parse', args)
 
   const program = new Command()
@@ -17,7 +15,7 @@ function parse(args) {
 
   program
     .command('get')
-    .argument('<tool>', `Tool. Can be one of: ${tools.join(', ')}`)
+    .argument('<tool>', `Tool. Can be one of: ${getModule.tools.join(', ')}`)
     .argument('<version>', 'Version')
     .option(
       '-d, --destination-folder-path <path>',
@@ -37,11 +35,11 @@ function parse(args) {
     .description('Get an Arduino tool')
     .action(async (tool, version, options) => {
       if (options.verbose === true) {
-        enable('gat:*')
+        debug.enable('gat:*')
       }
       log('Getting tool', tool, version, JSON.stringify(options))
 
-      /** @type {Parameters<typeof getTool>[0]['onProgress']} */
+      /** @type {import('./index.js').GetToolParams['onProgress']} */
       let onProgress = () => {}
       if (options.silent !== true) {
         const bar = new ProgressBar(
@@ -63,7 +61,7 @@ function parse(args) {
       }
 
       try {
-        const { toolPath } = await getTool({
+        const { toolPath } = await getModule.getTool({
           tool,
           version,
           onProgress,
@@ -73,22 +71,27 @@ function parse(args) {
         console.log(toolPath)
       } catch (err) {
         log('Failed to download tool', err)
-        console.log(err?.message || err)
-        if (err.code === 'EEXIST') {
-          if (options.okIfExists) {
-            log('Tool already exists and is executable, skipping download')
-            return
-          } else if (options.force !== true) {
-            return program.error('Use --force to overwrite existing files')
+        const errorMessage = err instanceof Error ? err.message : String(err)
+        console.log(errorMessage)
+        if (err instanceof Error && 'code' in err) {
+          if (err.code === 'EEXIST') {
+            if (options.okIfExists) {
+              log('Tool already exists and is executable, skipping download')
+              return
+            } else if (options.force !== true) {
+              return program.error('Use --force to overwrite existing files')
+            }
           }
         }
-        return program.error(err?.message || err)
+        return program.error(errorMessage)
       }
     })
 
   program.parse(args)
 }
 
-module.exports = {
+export { parse }
+
+export default {
   parse,
 }

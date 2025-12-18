@@ -1,14 +1,14 @@
-const { EventEmitter } = require('node:events')
+import events from 'node:events'
 
-const { createLog } = require('./log')
+import logModule from './log.js'
 
-class ProgressCounter extends EventEmitter {
-  /**
-   * @param {number} toDownloadBytes
-   */
+const { EventEmitter } = events
+
+export class ProgressCounter extends EventEmitter {
+  /** @param {number} toDownloadBytes */
   constructor(toDownloadBytes) {
     super()
-    this.log = createLog('progress')
+    this.log = logModule.createLog('progress')
     this.toDownloadBytes = toDownloadBytes
     this.downloadedBytes = 0
 
@@ -18,27 +18,21 @@ class ProgressCounter extends EventEmitter {
     this.currentPercentage = 0
   }
 
-  /**
-   * @param {number} length
-   */
+  /** @param {number} length */
   onDownload(length) {
     this.downloadedBytes += length
     this.log('download', length, this.downloadedBytes, this.toDownloadBytes)
     this.work()
   }
 
-  /**
-   * @param {number} length
-   */
+  /** @param {number} length */
   onEnter(length) {
     this.toExtractBytes += length
     this.log('enter', length, this.extractedBytes, this.toExtractBytes)
     this.work()
   }
 
-  /**
-   * @param {number} length
-   */
+  /** @param {number} length */
   onExtract(length) {
     this.extractedBytes += length
     this.log('extract', length, this.extractedBytes, this.toExtractBytes)
@@ -60,12 +54,12 @@ class ProgressCounter extends EventEmitter {
       )
     }
 
-    let nextPercentage = downloadPercentage + extractedPercentage
+    const nextPercentage = downloadPercentage + extractedPercentage
     this.log('next', nextPercentage, 'current', this.currentPercentage)
 
     if (nextPercentage > this.currentPercentage) {
       this.currentPercentage = nextPercentage
-      /** @type {import('./index').OnProgressParams} */
+      /** @type {import('./index.js').OnProgressParams} */
       const progressEvent = { current: this.currentPercentage }
       this.log('emit progress', progressEvent)
       this.emit('progress', progressEvent)
@@ -73,6 +67,6 @@ class ProgressCounter extends EventEmitter {
   }
 }
 
-module.exports = {
+export default {
   ProgressCounter,
 }

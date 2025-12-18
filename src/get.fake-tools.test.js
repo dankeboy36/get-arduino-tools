@@ -1,28 +1,33 @@
-const fs = require('node:fs/promises')
-const http = require('node:http')
-const path = require('node:path')
-const { Readable } = require('node:stream')
+import fs from 'node:fs/promises'
+import http from 'node:http'
+import path from 'node:path'
+import stream from 'node:stream'
+import { fileURLToPath } from 'node:url'
 
-const tmp = require('tmp-promise')
+import tmp from 'tmp-promise'
 
-const { download } = require('./download')
-const { getTool } = require('./get')
-const {
-  createToolBasename,
-  getArchiveType,
-  getDownloadUrl,
-} = require('./tools')
+import downloadModule from './download.js'
+import { getTool } from './get.js'
+import toolsModule from './tools.js'
 
-jest.mock('./download')
-jest.mock('./tools')
+const { Readable } = stream
+
+const actualDownload = downloadModule.download
 
 const itIsNotWin32 = process.platform !== 'win32' ? it : it.skip
 
 describe('get', () => {
+  /** @type {string} */
   let tempDirPath
+  /** @type {import('tmp-promise').DirectoryResult['cleanup']} */
   let cleanup
 
   beforeEach(async () => {
+    vi.restoreAllMocks()
+    vi.spyOn(toolsModule, 'getDownloadUrl').mockReturnValue(
+      'https://downloads.arduino.cc/mock'
+    )
+
     const tmpDirResult = await tmp.dir({
       keep: false,
       tries: 3,
@@ -37,11 +42,11 @@ describe('get', () => {
   })
 
   it('should preserve the executable flag of the tool (gzip)', async () => {
-    jest
-      .mocked(download)
-      .mockResolvedValue(loadFakeToolByName('fake-tool.tar.gz'))
-    jest.mocked(createToolBasename).mockReturnValue('fake-tool')
-    jest.mocked(getArchiveType).mockReturnValue('gzip')
+    vi.spyOn(downloadModule, 'download').mockResolvedValue(
+      loadFakeToolByName('fake-tool.tar.gz')
+    )
+    vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('fake-tool')
+    vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('gzip')
 
     const { toolPath } = await getTool({
       tool: '',
@@ -49,13 +54,17 @@ describe('get', () => {
       destinationFolderPath: tempDirPath,
     })
 
-    expect(fs.access(toolPath, fs.constants.X_OK)).resolves.toBeUndefined()
+    await expect(
+      fs.access(toolPath, fs.constants.X_OK)
+    ).resolves.toBeUndefined()
   })
 
   it('should preserve the executable flag of the tool (zip)', async () => {
-    jest.mocked(download).mockResolvedValue(loadFakeToolByName('fake-tool.zip'))
-    jest.mocked(createToolBasename).mockReturnValue('fake-tool.bat')
-    jest.mocked(getArchiveType).mockReturnValue('zip')
+    vi.spyOn(downloadModule, 'download').mockResolvedValue(
+      loadFakeToolByName('fake-tool.zip')
+    )
+    vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('fake-tool.bat')
+    vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('zip')
 
     const { toolPath } = await getTool({
       tool: '',
@@ -63,15 +72,17 @@ describe('get', () => {
       destinationFolderPath: tempDirPath,
     })
 
-    expect(fs.access(toolPath, fs.constants.X_OK)).resolves.toBeUndefined()
+    await expect(
+      fs.access(toolPath, fs.constants.X_OK)
+    ).resolves.toBeUndefined()
   })
 
   it('should preserve the executable flag of the non-Arduino tool (bzip2)', async () => {
-    jest
-      .mocked(download)
-      .mockResolvedValue(loadFakeToolByName('fake-tool-clang.tar.bz2'))
-    jest.mocked(createToolBasename).mockReturnValue('fake-tool')
-    jest.mocked(getArchiveType).mockReturnValue('bzip2')
+    vi.spyOn(downloadModule, 'download').mockResolvedValue(
+      loadFakeToolByName('fake-tool-clang.tar.bz2')
+    )
+    vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('fake-tool')
+    vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('bzip2')
 
     const { toolPath } = await getTool({
       tool: '',
@@ -79,15 +90,17 @@ describe('get', () => {
       destinationFolderPath: tempDirPath,
     })
 
-    expect(fs.access(toolPath, fs.constants.X_OK)).resolves.toBeUndefined()
+    await expect(
+      fs.access(toolPath, fs.constants.X_OK)
+    ).resolves.toBeUndefined()
   })
 
   it('should preserve the executable flag of the non-Arduino tool on Windows (bzip2)', async () => {
-    jest
-      .mocked(download)
-      .mockResolvedValue(loadFakeToolByName('fake-tool-clang-win32.tar.bz2'))
-    jest.mocked(createToolBasename).mockReturnValue('fake-tool.bat')
-    jest.mocked(getArchiveType).mockReturnValue('bzip2')
+    vi.spyOn(downloadModule, 'download').mockResolvedValue(
+      loadFakeToolByName('fake-tool-clang-win32.tar.bz2')
+    )
+    vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('fake-tool.bat')
+    vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('bzip2')
 
     const { toolPath } = await getTool({
       tool: '',
@@ -95,16 +108,18 @@ describe('get', () => {
       destinationFolderPath: tempDirPath,
     })
 
-    expect(fs.access(toolPath, fs.constants.X_OK)).resolves.toBeUndefined()
+    await expect(
+      fs.access(toolPath, fs.constants.X_OK)
+    ).resolves.toBeUndefined()
   })
 
   describe('zip-slip', () => {
     itIsNotWin32('should error (zip)', async () => {
-      jest
-        .mocked(download)
-        .mockResolvedValue(loadFakeToolByName('zip-slip/evil.zip'))
-      jest.mocked(createToolBasename).mockReturnValue('evil.sh')
-      jest.mocked(getArchiveType).mockReturnValue('zip')
+      vi.spyOn(downloadModule, 'download').mockResolvedValue(
+        loadFakeToolByName('zip-slip/evil.zip')
+      )
+      vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('evil.sh')
+      vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('zip')
 
       await expect(
         getTool({
@@ -116,11 +131,11 @@ describe('get', () => {
     })
 
     itIsNotWin32('should error (tar.gz)', async () => {
-      jest
-        .mocked(download)
-        .mockResolvedValue(loadFakeToolByName('zip-slip/evil.tar.gz'))
-      jest.mocked(createToolBasename).mockReturnValue('evil.sh')
-      jest.mocked(getArchiveType).mockReturnValue('gzip')
+      vi.spyOn(downloadModule, 'download').mockResolvedValue(
+        loadFakeToolByName('zip-slip/evil.tar.gz')
+      )
+      vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('evil.sh')
+      vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('gzip')
 
       await expect(
         getTool({
@@ -132,11 +147,11 @@ describe('get', () => {
     })
 
     itIsNotWin32('should error (tar.bz2)', async () => {
-      jest
-        .mocked(download)
-        .mockResolvedValue(loadFakeToolByName('zip-slip/evil.tar.bz2'))
-      jest.mocked(createToolBasename).mockReturnValue('evil.sh')
-      jest.mocked(getArchiveType).mockReturnValue('bzip2')
+      vi.spyOn(downloadModule, 'download').mockResolvedValue(
+        loadFakeToolByName('zip-slip/evil.tar.bz2')
+      )
+      vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('evil.sh')
+      vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('bzip2')
 
       await expect(
         getTool({
@@ -149,6 +164,7 @@ describe('get', () => {
   })
 
   describe('with fake server', () => {
+    /** @type {import('node:http').Server} */
     let server
 
     beforeAll(async () => {
@@ -167,13 +183,12 @@ describe('get', () => {
 
     it('should cancel the download', async () => {
       const { address, port } = server.address()
-      jest.mocked(download).mockImplementation(({ url, signal }) => {
-        const originalModule = jest.requireActual('./download')
-        return originalModule.download({ url, signal })
-      })
-      jest.mocked(getDownloadUrl).mockReturnValue(`http://${address}:${port}`)
-      jest.mocked(createToolBasename).mockReturnValue('fake-tool')
-      jest.mocked(getArchiveType).mockReturnValue('gzip')
+      vi.spyOn(downloadModule, 'download').mockImplementation(actualDownload)
+      vi.spyOn(toolsModule, 'getDownloadUrl').mockReturnValue(
+        `http://${address}:${port}`
+      )
+      vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('fake-tool')
+      vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('gzip')
 
       const controller = new AbortController()
       const { signal } = controller
@@ -188,19 +203,18 @@ describe('get', () => {
         })
       ).rejects.toThrow(/abort/)
 
-      expect(fs.readdir(tempDirPath)).resolves.toStrictEqual([])
+      await expect(fs.readdir(tempDirPath)).resolves.toStrictEqual([])
     })
 
     it('should support progress', async () => {
       const { address, port } = server.address()
-      jest.mocked(download).mockImplementation(({ url, signal }) => {
-        const originalModule = jest.requireActual('./download')
-        return originalModule.download({ url, signal })
-      })
-      jest.mocked(getDownloadUrl).mockReturnValue(`http://${address}:${port}`)
-      jest.mocked(createToolBasename).mockReturnValue('fake-tool')
-      jest.mocked(getArchiveType).mockReturnValue('gzip')
-      const onProgress = jest.fn()
+      vi.spyOn(downloadModule, 'download').mockImplementation(actualDownload)
+      vi.spyOn(toolsModule, 'getDownloadUrl').mockReturnValue(
+        `http://${address}:${port}`
+      )
+      vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue('fake-tool')
+      vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('gzip')
+      const onProgress = vi.fn()
 
       await getTool({
         tool: '',
@@ -209,16 +223,22 @@ describe('get', () => {
         onProgress,
       })
 
-      expect(fs.readdir(tempDirPath)).resolves.toStrictEqual(['fake-tool'])
+      await expect(fs.readdir(tempDirPath)).resolves.toStrictEqual([
+        'fake-tool',
+      ])
       expect(onProgress).toHaveBeenNthCalledWith(1, { current: 50 })
       expect(onProgress).toHaveBeenNthCalledWith(2, { current: 100 })
     })
   })
 
+  /** @param {string} fakeToolName */
   async function loadFakeToolByName(fakeToolName) {
-    const originalModule = jest.requireActual('node:fs/promises')
-    const toolPath = path.join(__dirname, '../fake-tools', fakeToolName)
-    const buffer = await originalModule.readFile(toolPath)
+    const toolPath = path.join(
+      // @ts-ignore
+      fileURLToPath(new URL('../fake-tools', import.meta.url)),
+      fakeToolName
+    )
+    const buffer = await fs.readFile(toolPath)
     const readable = Readable.from(buffer)
     return {
       body: readable,

@@ -1,31 +1,31 @@
-const { execFile: execFileCallback } = require('node:child_process')
+import childProcess from 'node:child_process'
 
-const { execFile } = require('./execFile')
+import { execFile } from './execFile.js'
 
-const mockedExecFileCallback = jest.mocked(execFileCallback)
-
-jest.mock('node:child_process', () => ({
-  ...jest.requireActual('node:child_process'),
-  execFile: jest.fn((_file, _args, callback) => {
+const execFileSpy = vi
+  .spyOn(childProcess, 'execFile')
+  .mockImplementation((_file, _args, callback) => {
     callback(null, { stdout: 'execution output', stderr: '' })
-  }),
-}))
+  })
 
 describe('execFile', () => {
   beforeEach(() => {
-    mockedExecFileCallback.mockReset()
+    execFileSpy.mockReset()
+    execFileSpy.mockImplementation((_file, _args, callback) => {
+      callback(null, { stdout: 'execution output', stderr: '' })
+    })
   })
 
   it('should execute the file successfully', async () => {
     const mockStdout = ' untrimmed output '
-    mockedExecFileCallback.mockImplementation((_file, _args, callback) =>
+    execFileSpy.mockImplementation((_file, _args, callback) =>
       callback(null, { stdout: mockStdout, stderr: '' })
     )
 
     const result = await execFile('testFile', ['arg1', 'arg2'])
 
     expect(result).toEqual(mockStdout.trim())
-    expect(mockedExecFileCallback).toHaveBeenCalledWith(
+    expect(execFileSpy).toHaveBeenCalledWith(
       'testFile',
       ['arg1', 'arg2'],
       expect.any(Function)
@@ -33,13 +33,13 @@ describe('execFile', () => {
   })
 
   it('should use an empty array as the default args', async () => {
-    mockedExecFileCallback.mockImplementation((_file, _args, callback) =>
+    execFileSpy.mockImplementation((_file, _args, callback) =>
       callback(null, { stdout: '', stderr: '' })
     )
 
     await execFile('testFile')
 
-    expect(mockedExecFileCallback).toHaveBeenCalledWith(
+    expect(execFileSpy).toHaveBeenCalledWith(
       'testFile',
       [],
       expect.any(Function)
@@ -48,7 +48,7 @@ describe('execFile', () => {
 
   it('should re-throw the error', async () => {
     const mockError = new Error('an error')
-    mockedExecFileCallback.mockImplementation((_file, _args, callback) =>
+    execFileSpy.mockImplementation((_file, _args, callback) =>
       callback(mockError, { stdout: '', stderr: '' })
     )
 
@@ -57,7 +57,7 @@ describe('execFile', () => {
 
   it('should return the stderr when errors with canError', async () => {
     const mockError = Object.assign(new Error('an error'), { stderr: 'stderr' })
-    mockedExecFileCallback.mockImplementation((_file, _args, callback) =>
+    execFileSpy.mockImplementation((_file, _args, callback) =>
       callback(mockError, { stdout: '', stderr: '' })
     )
 

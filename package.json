@@ -16,27 +16,44 @@
   },
   "license": "MIT",
   "author": "dankeboy36",
-  "type": "commonjs",
-  "main": "dist/index.js",
-  "types": "src/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
-    "gat": "bin/cli.js"
+    "gat": "bin/cli.cjs"
   },
   "files": [
     "bin",
-    "dist",
-    "src/index.d.ts"
+    "dist"
   ],
   "scripts": {
-    "build": "npm run build:lib && npm run build:cli",
-    "build:cli": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --minify --sourcemap --outfile=dist/cli.js",
-    "build:lib": "esbuild src/index.js --bundle --platform=node --target=node22 --format=cjs --minify --sourcemap --outfile=dist/index.js",
+    "prebuild": "rimraf dist",
+    "build": "npm run build:lib && npm run build:cli && npm run build:types",
+    "build:cli": "esbuild src/cli.js --bundle --platform=node --target=node22 --format=cjs --minify --sourcemap --outfile=dist/cli.cjs",
+    "build:lib": "npm run build:lib:cjs && npm run build:lib:esm",
+    "build:lib:cjs": "esbuild src/index.js --bundle --platform=node --target=node22 --format=cjs --minify --sourcemap --outfile=dist/index.cjs",
+    "build:lib:esm": "esbuild src/index.js --bundle --packages=external --platform=node --target=node22 --format=esm --minify --sourcemap --outfile=dist/index.js",
+    "build:types": "cpy index.d.ts ../../dist --cwd=src && cpy index.d.ts ../../dist --cwd=src --rename=index.d.cts",
     "format": "prettier --write .",
+    "lint": "eslint src --fix",
     "release": "semantic-release",
-    "test": "jest --coverage --verbose",
+    "test": "vitest run --coverage --reporter verbose",
     "test:all": "npm run test && npm run test:slow",
     "pretest:slow": "npm run build:cli",
-    "test:slow": "jest --config jest.config.slow.js"
+    "test:slow": "vitest run --config vitest.config.slow.js --reporter verbose"
   },
   "dependencies": {
     "commander": "^12.1.0",
@@ -49,35 +66,37 @@
     "unzip-stream": "^0.3.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.26.0",
-    "@babel/eslint-parser": "^7.26.5",
-    "@babel/preset-env": "^7.26.0",
-    "@sadams/wait-for-expect": "^1.1.0",
+    "@babel/core": "^7.28.5",
+    "@babel/eslint-parser": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
     "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/commit-analyzer": "^10.0.1",
-    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^9.0.3",
-    "@semantic-release/npm": "^10.0.4",
-    "@semantic-release/release-notes-generator": "^11.0.3",
-    "@types/jest": "^29.5.14",
-    "@types/node": "18.x",
+    "@semantic-release/github": "^12.0.2",
+    "@semantic-release/npm": "^13.1.3",
+    "@semantic-release/release-notes-generator": "^14.1.0",
+    "@types/node": "20.x",
     "@types/progress": "^2.0.7",
     "@types/tar-stream": "^3.1.3",
     "@types/unbzip2-stream": "^1.4.3",
     "@types/unzip-stream": "^0.3.4",
-    "babel-jest": "^29.7.0",
-    "esbuild": "^0.25.0",
-    "eslint": "^8.39.0",
-    "eslint-config-prettier": "^6.10.1",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.28.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "jest": "^29.7.0",
-    "prettier": "^2.7.1",
-    "prettier-plugin-organize-imports": "^4.1.0",
-    "prettier-plugin-packagejson": "^2.4.7",
-    "semantic-release": "^21.0.7",
-    "vscode-jsonrpc": "^8.2.1"
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/eslint-plugin": "^1.5.2",
+    "cpy-cli": "^6.0.0",
+    "esbuild": "^0.27.2",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import-x": "^4.16.1",
+    "neostandard": "^0.12.2",
+    "prettier": "^3.7.4",
+    "prettier-plugin-jsdoc": "^1.8.0",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "prettier-plugin-packagejson": "^2.5.20",
+    "rimraf": "^6.1.2",
+    "semantic-release": "^25.0.2",
+    "vitest": "^4.0.16",
+    "vscode-jsonrpc": "^8.2.1",
+    "wait-for-expect": "^4.0.0"
   }
 }

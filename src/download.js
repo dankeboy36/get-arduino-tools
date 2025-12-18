@@ -1,10 +1,12 @@
-const { ReadableStream } = require('node:stream/web')
-const { Readable } = require('node:stream')
+import stream from 'node:stream'
 
-const xhr = require('request-light-stream')
-const { CancellationTokenSource } = require('vscode-jsonrpc')
+import xhr from 'request-light-stream'
+import vscodeJsonrpc from 'vscode-jsonrpc'
 
-const { createLog } = require('./log')
+import logModule from './log.js'
+
+const { Readable } = stream
+const { CancellationTokenSource } = vscodeJsonrpc
 
 /**
  * @typedef {Object} DownloadParams
@@ -12,16 +14,15 @@ const { createLog } = require('./log')
  * @property {AbortSignal} [signal]
  *
  * @typedef {Object} DownloadResult
- * @property {Readable} body
+ * @property {import('node:stream').Readable} body
  * @property {number} length
- *
  * @param {DownloadParams} params
  * @returns {Promise<DownloadResult>}
  */
-async function download({ url, signal }) {
-  const log = createLog('download')
+export async function download({ url, signal }) {
+  const log = logModule.createLog('download')
 
-  /** @type {xhr.CancellationToken|undefined} */
+  /** @type {xhr.CancellationToken | undefined} */
   let token
   if (signal) {
     const source = new CancellationTokenSource()
@@ -46,6 +47,7 @@ async function download({ url, signal }) {
 
     const length = getContentLength(headers)
     return {
+      // @ts-ignore
       body: createReadableFromWeb(body),
       length,
     }
@@ -55,21 +57,24 @@ async function download({ url, signal }) {
         err instanceof Error ? err : JSON.stringify(err)
       }`
     )
-    throw new Error(
-      err.responseText ||
-        (err.status && xhr.getErrorStatusDescription(err.status)) ||
-        err.toString()
-    )
+    let message = String(err)
+    if (err !== null && typeof err === 'object') {
+      const anyErr = /** @type {any} */ (err)
+      message =
+        anyErr.responseText ||
+        (anyErr.status ? xhr.getErrorStatusDescription(anyErr.status) : '') ||
+        anyErr.toString()
+    }
+
+    throw new Error(`Failed to download ${url}: ${message}`, { cause: err })
   }
 }
 
-/**
- * @param {import('request-light-stream').XHRResponse['headers']} [headers]
- */
+/** @param {import('request-light-stream').XHRResponse['headers']} [headers] */
 function getContentLength(headers) {
   return (
     Object.entries(headers ?? {}).reduce(
-      (/** @type {number[]}*/ acc, [key, value]) => {
+      (/** @type {number[]} */ acc, [key, value]) => {
         if (key.toLowerCase() === 'content-length') {
           const lengthValue = Array.isArray(value) ? value[0] : value
           if (lengthValue) {
@@ -87,8 +92,8 @@ function getContentLength(headers) {
 }
 
 /**
- * @param {ReadableStream} body
- * @returns {Readable}
+ * @param {import('node:stream/web').ReadableStream<Uint8Array<ArrayBuffer>>} body
+ * @returns {import('node:stream').Readable}
  */
 function createReadableFromWeb(body) {
   const reader = body.getReader()
@@ -102,12 +107,12 @@ function createReadableFromWeb(body) {
           this.push(Buffer.from(value))
         }
       } catch (err) {
-        this.destroy(err)
+        this.destroy(err instanceof Error ? err : new Error(String(err)))
       }
     },
   })
 }
 
-module.exports = {
+export default {
   download,
 }
