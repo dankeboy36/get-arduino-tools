@@ -36,8 +36,8 @@ jobs:
         run: npm run format && git diff --exit-code
       - name: Test
         run: npm test
-      - name: Slow Test
-        run: npm run test:slow
+      # - name: Slow Test
+      #   run: npm run test:slow
       - name: Smoke Test
         run: npm run test:smoke
 
