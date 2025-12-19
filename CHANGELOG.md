@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/dankeboy36/get-arduino-tools/compare/1.3.0...1.3.1) (2025-12-19)
+
+
+### Bug Fixes
+
+* move `vscode-jsonrpc` to deps ([#41](https://github.com/dankeboy36/get-arduino-tools/issues/41)) ([055cd0e](https://github.com/dankeboy36/get-arduino-tools/commit/055cd0ec494f41158c047cbbb8c1b06cb95f6de5))
+
 # [1.3.0](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.10...1.3.0) (2025-12-19)
 
 
