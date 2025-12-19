@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.10...1.3.0) (2025-12-19)
+
+
+### Features
+
+* can get the latest version of the tools ([#38](https://github.com/dankeboy36/get-arduino-tools/issues/38)) ([11e0394](https://github.com/dankeboy36/get-arduino-tools/commit/11e0394fc8ecb7627ccccce447cf3c63c81ae0cc))
+
 ## [1.2.10](https://github.com/dankeboy36/get-arduino-tools/compare/1.2.9...1.2.10) (2025-12-18)
 
 
