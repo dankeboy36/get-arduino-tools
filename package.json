@@ -65,7 +65,8 @@
     "tar-stream": "^3.1.7",
     "tmp-promise": "^3.0.3",
     "unbzip2-stream": "^1.4.3",
-    "unzip-stream": "^0.3.4"
+    "unzip-stream": "^0.3.4",
+    "vscode-jsonrpc": "^8.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",
@@ -99,7 +100,6 @@
     "semantic-release": "^25.0.2",
     "semver": "^7.7.3",
     "vitest": "^4.0.16",
-    "vscode-jsonrpc": "^8.2.1",
     "wait-for-expect": "^4.0.0"
   }
 }

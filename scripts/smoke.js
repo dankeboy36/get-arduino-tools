@@ -3,6 +3,8 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import tmp from 'tmp-promise'
+
 const npmCommand = (() => {
   if (process.env.npm_execpath) {
     return {
@@ -19,7 +21,7 @@ const npmCommand = (() => {
 // @ts-ignore
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, '..')
-const fixturesDir = path.join(repoRoot, 'test', 'fixtures')
+const sourceFixturesDir = path.join(repoRoot, 'test', 'fixtures')
 
 const fixtures = [
   { name: 'cjs', entry: 'smoke.js' },
@@ -32,22 +34,25 @@ async function main() {
   })
 
   const tarballPath = packTarball()
+  const { tempFixturesDir, cleanupTempFixtures } = await createTempFixturesDir()
   try {
     for (const fixture of fixtures) {
-      await runFixture(fixture, tarballPath)
+      await runFixture(fixture, tarballPath, tempFixturesDir)
     }
     console.log('\nSmoke tests completed successfully')
   } finally {
     await fs.rm(tarballPath, { force: true })
+    await cleanupTempFixtures?.()
   }
 }
 
 /**
  * @param {{ name: string; entry: string }} fixture
  * @param {string} tarballPath
+ * @param {string} fixturesRoot
  */
-async function runFixture(fixture, tarballPath) {
-  const fixtureDir = path.join(fixturesDir, fixture.name)
+async function runFixture(fixture, tarballPath, fixturesRoot) {
+  const fixtureDir = path.join(fixturesRoot, fixture.name)
   const displayName = `${fixture.name} fixture`
 
   console.log(`\nRunning ${displayName}`)
@@ -99,6 +104,17 @@ function packTarball() {
   const tarballPath = path.join(repoRoot, filename)
   console.log(`Tarball created at ${tarballPath}`)
   return tarballPath
+}
+
+async function createTempFixturesDir() {
+  // Use a temp dir so module resolution cannot reach repo root node_modules.
+  const { path: tempRoot, cleanup } = await tmp.dir({
+    prefix: 'gat-smoke-',
+    unsafeCleanup: true,
+  })
+  const tempFixturesDir = path.join(tempRoot, 'fixtures')
+  await fs.cp(sourceFixturesDir, tempFixturesDir, { recursive: true })
+  return { tempFixturesDir, cleanupTempFixtures: cleanup }
 }
 
 /** @param {string} dir */
