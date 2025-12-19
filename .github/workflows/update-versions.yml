@@ -1,0 +1,43 @@
+name: Update pinned versions
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '17 3 * * *' # At 03:17. (https://crontab.guru/#17_3_*_*_*)
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Update versions
+        run: npm run versions:update
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'fix: update pinned latest versions'
+          title: 'fix: update pinned latest versions'
+          body: |
+            Automated update of `src/versions.js` based on GitHub releases.
+
+            - Arduino tools: latest release from `arduino/<tool>`
+            - Clang tools: latest release from `arduino/clang-static-binaries`
+          branch: fix/update-pinned-versions
+          delete-branch: true

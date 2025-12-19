@@ -18,7 +18,7 @@ function parse(args) {
   program
     .command('get')
     .argument('<tool>', `Tool. Can be one of: ${getModule.tools.join(', ')}`)
-    .argument('<version>', 'Version')
+    .argument('[version]', 'Version (defaults to latest)')
     .allowExcessArguments(false)
     .option(
       '-d, --destination-folder-path <path>',

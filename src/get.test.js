@@ -10,6 +10,7 @@ import { getTool } from './get.js'
 import logModule from './log.js'
 import progressModule from './progress.js'
 import toolsModule from './tools.js'
+import versionsModule from './versions.js'
 
 const { Readable, PassThrough } = stream
 const { ProgressCounter } = progressModule
@@ -35,6 +36,8 @@ describe('get', () => {
     createWriteStream: vi.fn(() => new PassThrough()),
   }
 
+  const mockedGetLatestVersion = () => mockVersion
+
   /** @type {import('vitest').MockInstance} */
   let getDownloadUrlSpy
   /** @type {import('vitest').MockInstance} */
@@ -59,6 +62,9 @@ describe('get', () => {
 
     vi.spyOn(toolsModule, 'createToolBasename').mockReturnValue(mockTool)
     vi.spyOn(toolsModule, 'getArchiveType').mockReturnValue('zip')
+    vi.spyOn(versionsModule, 'getLatestVersion').mockImplementation(
+      mockedGetLatestVersion
+    )
 
     getDownloadUrlSpy = vi
       .spyOn(toolsModule, 'getDownloadUrl')
@@ -106,6 +112,43 @@ describe('get', () => {
     expect(result.toolPath).toBe(
       path.join(mockDestinationFolderPath, 'arduino-cli')
     )
+  })
+
+  it('should default to the pinned latest version when omitted', async () => {
+    getDownloadUrlSpy.mockImplementation(actualGetDownloadUrl)
+    isArduinoToolSpy.mockImplementation(actualIsArduinoTool)
+    toolsModule.createToolBasename.mockReturnValue('arduino-cli')
+
+    await getTool({
+      tool: 'arduino-cli',
+      destinationFolderPath: mockDestinationFolderPath,
+      platform: mockPlatform,
+      arch: mockArch,
+    })
+
+    expect(downloadModule.download).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: `https://downloads.arduino.cc/arduino-cli/arduino-cli_${mockVersion}_Linux_64bit.tar.gz`,
+      })
+    )
+  })
+
+  it('should error when tool has no default latest and omitted', async () => {
+    getDownloadUrlSpy.mockImplementation(actualGetDownloadUrl)
+    isArduinoToolSpy.mockImplementation(actualIsArduinoTool)
+    toolsModule.createToolBasename.mockReturnValue('arduino-cli')
+    versionsModule.getLatestVersion.mockReturnValue(undefined)
+
+    await expect(
+      getTool({
+        tool: 'arduino-cli',
+        destinationFolderPath: mockDestinationFolderPath,
+        platform: mockPlatform,
+        arch: mockArch,
+      })
+    ).rejects.toThrow(/missing version for tool/i)
+
+    expect(downloadModule.download).not.toHaveBeenCalled()
   })
 
   it('should throw an error if download fails', async () => {

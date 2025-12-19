@@ -21,7 +21,7 @@ export interface OnProgressParams {
 
 export declare interface GetToolParams {
   tool: Tool
-  version: string
+  version?: string
   destinationFolderPath: string
   platform?: NodeJS.Platform
   arch?: NodeJS.Architecture

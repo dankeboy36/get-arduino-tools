@@ -9,6 +9,7 @@ import tmp from 'tmp-promise'
 import downloadModule from './download.js'
 import { getTool } from './get.js'
 import toolsModule from './tools.js'
+import versionsModule from './versions.js'
 
 const { Readable } = stream
 
@@ -27,6 +28,9 @@ describe('get', () => {
     vi.spyOn(toolsModule, 'getDownloadUrl').mockReturnValue(
       'https://downloads.arduino.cc/mock'
     )
+    vi.spyOn(versionsModule, 'getLatestVersion').mockImplementation(() => {
+      return 'version'
+    })
 
     const tmpDirResult = await tmp.dir({
       keep: false,
@@ -50,7 +54,6 @@ describe('get', () => {
 
     const { toolPath } = await getTool({
       tool: '',
-      version: '',
       destinationFolderPath: tempDirPath,
     })
 
@@ -68,7 +71,6 @@ describe('get', () => {
 
     const { toolPath } = await getTool({
       tool: '',
-      version: '',
       destinationFolderPath: tempDirPath,
     })
 
@@ -86,7 +88,6 @@ describe('get', () => {
 
     const { toolPath } = await getTool({
       tool: '',
-      version: '',
       destinationFolderPath: tempDirPath,
     })
 
@@ -104,7 +105,6 @@ describe('get', () => {
 
     const { toolPath } = await getTool({
       tool: '',
-      version: '',
       destinationFolderPath: tempDirPath,
     })
 
@@ -124,7 +124,6 @@ describe('get', () => {
 
     const { toolPath } = await getTool({
       tool: '',
-      version: '',
       destinationFolderPath,
     })
 
@@ -144,7 +143,6 @@ describe('get', () => {
 
     await getTool({
       tool: '',
-      version: '',
       destinationFolderPath,
     })
 

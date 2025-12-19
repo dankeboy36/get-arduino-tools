@@ -9,6 +9,7 @@ import extractModule from './extract.js'
 import logModule from './log.js'
 import progressModule from './progress.js'
 import toolsModule from './tools.js'
+import versions from './versions.js'
 
 const { Transform } = stream
 const { ProgressCounter } = progressModule
@@ -27,9 +28,16 @@ async function getTool({
 }) {
   const log = logModule.createLog('getTool')
 
+  const resolvedVersion = version || versions.getLatestVersion(tool)
+  if (!resolvedVersion) {
+    throw new Error(
+      `Missing version for tool ${tool}. Pass a version explicitly`
+    )
+  }
+
   const url = toolsModule.getDownloadUrl({
     tool,
-    version,
+    version: resolvedVersion,
     platform,
     arch,
   })
