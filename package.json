@@ -54,6 +54,7 @@
     "test:all": "npm run test && npm run test:slow",
     "pretest:slow": "npm run build:cli",
     "test:slow": "vitest run --config vitest.config.slow.js --reporter verbose",
+    "test:smoke": "node scripts/smoke.js",
     "versions:update": "node scripts/update-versions.js"
   },
   "dependencies": {
