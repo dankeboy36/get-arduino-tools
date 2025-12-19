@@ -53,7 +53,8 @@
     "test": "vitest run --coverage --reporter verbose",
     "test:all": "npm run test && npm run test:slow",
     "pretest:slow": "npm run build:cli",
-    "test:slow": "vitest run --config vitest.config.slow.js --reporter verbose"
+    "test:slow": "vitest run --config vitest.config.slow.js --reporter verbose",
+    "versions:update": "node scripts/update-versions.js"
   },
   "dependencies": {
     "commander": "^12.1.0",
@@ -95,6 +96,7 @@
     "prettier-plugin-packagejson": "^2.5.20",
     "rimraf": "^6.1.2",
     "semantic-release": "^25.0.2",
+    "semver": "^7.7.3",
     "vitest": "^4.0.16",
     "vscode-jsonrpc": "^8.2.1",
     "wait-for-expect": "^4.0.0"

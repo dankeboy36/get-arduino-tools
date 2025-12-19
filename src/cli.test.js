@@ -81,6 +81,16 @@ describe('cli', () => {
     expect(exitSpy).not.toHaveBeenCalled()
   })
 
+  it('should allow omitting the version', () => {
+    parse(['node', 'script.js', 'get', 'arduino-cli'])
+
+    expect(getToolSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ tool: 'arduino-cli', version: undefined })
+    )
+
+    expect(exitSpy).not.toHaveBeenCalled()
+  })
+
   it('should provide progress', async () => {
     const currents = [0, 5, 5, 6, 10]
 

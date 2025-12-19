@@ -28,13 +28,13 @@ npm install -g get-arduino-tools
 You can use `gat` to download Arduino tools with the following command:
 
 ```bash
-gat get <tool> <version> [options]
+gat get <tool> [version] [options]
 ```
 
 #### Arguments
 
 - `<tool>`: The tool you want to download. Can be one of: `arduino-cli`, `arduino-language-server`, `arduino-fwuploader`, `arduino-lint`, `clangd`, `clang-format`.
-- `<version>`: The version of the tool you want to download.
+- `[version]`: Optional. If omitted, `gat` uses the pinned “latest” from [`src/versions.js`](src/versions.js).
 
 #### Options
 
@@ -48,10 +48,10 @@ gat get <tool> <version> [options]
 
 #### Examples
 
-To download the Arduino CLI version `1.1.1` to the current working directory:
+To download the Arduino CLI using the pinned latest version to the current working directory:
 
 ```bash
-gat get arduino-cli 1.1.1
+gat get arduino-cli
 ```
 
 To download `clangd` for the Arduino language server with verbose output:
@@ -74,9 +74,9 @@ const { getTool } = require('get-arduino-tools')
 getTool({
   tool: 'arduino-cli',
   version: '1.1.1',
-  destinationFolderPath: 'path/to/the/dir',
+  destinationFolderPath: '/path/to/the/dir',
 }).then((result) => console.log(result), console.error)
-// { toolPath: 'path/to/the/dir/arduino-cli' }
+// { toolPath: '/path/to/the/dir/arduino-cli' }
 ```
 
 ### Proxy Support
