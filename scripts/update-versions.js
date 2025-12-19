@@ -76,7 +76,7 @@ function renderVersionsFile(latestVersions) {
   }
 
   return `/** @type {Record<import('./index.js').Tool, string>} */
-export const latestVersions = {
+const latestVersions = {
 ${lines.join('\n')}
 }
 
