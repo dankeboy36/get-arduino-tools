@@ -34,8 +34,7 @@ async function main() {
   })
 
   const tarballPath = packTarball()
-  const { tempFixturesDir, cleanupTempFixtures } =
-    await createTempFixturesDir()
+  const { tempFixturesDir, cleanupTempFixtures } = await createTempFixturesDir()
   try {
     for (const fixture of fixtures) {
       await runFixture(fixture, tarballPath, tempFixturesDir)
