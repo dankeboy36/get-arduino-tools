@@ -3,7 +3,18 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+const npmCommand = (() => {
+  if (process.env.npm_execpath) {
+    return {
+      command: process.env.npm_node_execpath || process.execPath,
+      args: [process.env.npm_execpath],
+    }
+  }
+  return {
+    command: process.platform === 'win32' ? 'npm.cmd' : 'npm',
+    args: [],
+  }
+})()
 
 // @ts-ignore
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -16,7 +27,9 @@ const fixtures = [
 ]
 
 async function main() {
-  runStep('build', npmCommand, ['run', 'build'], { cwd: repoRoot })
+  runStep('build', npmCommand.command, [...npmCommand.args, 'run', 'build'], {
+    cwd: repoRoot,
+  })
 
   const tarballPath = packTarball()
   try {
@@ -42,8 +55,9 @@ async function runFixture(fixture, tarballPath) {
 
   runStep(
     `${displayName} install`,
-    npmCommand,
+    npmCommand.command,
     [
+      ...npmCommand.args,
       'install',
       '--no-save',
       '--no-package-lock',
@@ -67,10 +81,14 @@ async function runFixture(fixture, tarballPath) {
 
 function packTarball() {
   console.log('\nPacking tarball...')
-  const output = execFileSync(npmCommand, ['pack', '--json'], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-  })
+  const output = execFileSync(
+    npmCommand.command,
+    [...npmCommand.args, 'pack', '--json'],
+    {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    }
+  )
   const packResult = JSON.parse(output)
   const filename = Array.isArray(packResult)
     ? packResult[0]?.filename
