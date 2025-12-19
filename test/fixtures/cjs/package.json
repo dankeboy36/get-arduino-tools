@@ -1,0 +1,10 @@
+{
+  "name": "gat-smoke-cjs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CJS smoke fixture for get-arduino-tools",
+  "type": "commonjs",
+  "scripts": {
+    "smoke": "node smoke.js"
+  }
+}

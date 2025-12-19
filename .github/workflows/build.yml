@@ -34,10 +34,14 @@ jobs:
         run: npm ci
       - name: Check Format
         run: npm run format && git diff --exit-code
+      - name: Check Lint
+        run: npm run lint
       - name: Test
         run: npm test
       - name: Slow Test
         run: npm run test:slow
+      - name: Smoke Test
+        run: npm run test:smoke
 
   release:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
